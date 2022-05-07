@@ -24,7 +24,7 @@ class ClingoApp(Application):
         ctl_insts = Control()
         ctl_insts.register_observer(ProgramObserver(self.prg))
         # read subdomains in #program insts.
-        self.__read_sub_doms(ctl_insts, files)
+        self.__read_subdoms(ctl_insts, files)
         if self.ground:
             print(self.prg)
 
@@ -70,7 +70,7 @@ class ClingoApp(Application):
                             for l in transformer.shows[f]:
                                 print(f"#show {f}/{l}.")
 
-    def __read_sub_doms(self, ctl_insts, files):
+    def __read_subdoms(self, ctl_insts, files):
         # ctl_insts = Control()
         for f in files:
             ctl_insts.load(f)
