@@ -5,7 +5,7 @@ from clingo.control import Control
 from clingox.program import Program, ProgramObserver
 
 from add_subdom import add_to_subdom
-from main import NglpDlpTransformer
+from nglp_transformer import NglpDlpTransformer
 from term_transformer import TermTransformer
 
 
