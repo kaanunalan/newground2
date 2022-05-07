@@ -11,6 +11,9 @@ from clingox.program import Program, ProgramObserver, Remapping
 
 import networkx as nx
 
+from add_subdom import add_to_subdom
+
+
 class ClingoApp(object):
     def __init__(self, name, no_show=False, ground_guess=False, ground=False):
         self.program_name = name
@@ -74,7 +77,7 @@ class ClingoApp(object):
             if(str(k.symbol).startswith('_dom_')):
                 var = str(k.symbol).split("(", 1)[0]
                 atom = re.sub(r'^.*?\(', '', str(k.symbol))[:-1]
-                _addToSubdom(self.sub_doms, var, atom)
+                add_to_subdom(self.sub_doms, var, atom)
 
 
 class NglpDlpTransformer(Transformer):  
@@ -654,13 +657,13 @@ class TermTransformer(Transformer):
         for i in range(int(str(node.left)), int(str(node.right))+1):
             if (str(i) not in self.terms):
                 self.terms.append(str(i))
-            _addToSubdom(self.sub_doms, self.current_f, str(i))
+            add_to_subdom(self.sub_doms, self.current_f, str(i))
         return node
 
     def visit_SymbolicTerm(self, node):
         if (str(node) not in self.terms):
             self.terms.append(str(node))
-        _addToSubdom(self.sub_doms, self.current_f, str(node))
+        add_to_subdom(self.sub_doms, self.current_f, str(node))
         return node
 
     def visit_ShowSignature(self, node):
@@ -668,18 +671,6 @@ class TermTransformer(Transformer):
         if not self.no_show:
             print (node)
         return node
-
-def _addToSubdom(sub_doms, var, value):
-    if var.startswith('_dom_'):
-        var = var[5:]
-    else:
-        return
-
-    if var not in sub_doms:
-        sub_doms[var] = []
-        sub_doms[var].append(value)
-    elif value not in sub_doms[var]:
-        sub_doms[var].append(value)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(prog='newground', usage='%(prog)s [files]')
