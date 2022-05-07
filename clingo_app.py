@@ -34,7 +34,7 @@ class ClingoApp(Application):
         with ProgramBuilder(ctl) as bld:
             transformer = NglpDlpTransformer(bld, term_transformer.terms, term_transformer.facts,
                                              term_transformer.ng_heads, term_transformer.shows,
-                                             term_transformer.sub_doms, self.ground_guess, self.ground)
+                                             term_transformer.subdoms, self.ground_guess, self.ground)
             parse_files(files, lambda stm: bld.add(transformer(stm)))
             if transformer.counter > 0:
                 parse_string(":- not sat.", lambda stm: bld.add(stm))

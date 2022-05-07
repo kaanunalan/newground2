@@ -6,9 +6,9 @@ from add_subdom import add_to_subdom
 
 
 class TermTransformer(Transformer):
-    def __init__(self, sub_doms, no_show=False):
+    def __init__(self, subdoms, no_show=False):
         self.terms = []
-        self.sub_doms = sub_doms
+        self.subdoms = subdoms
         self.facts = {}
         self.ng_heads = {}
         self.ng = False
@@ -45,7 +45,7 @@ class TermTransformer(Transformer):
     def visit_Function(self, node):
         self.current_f = str(node).split("(", 1)[0] if len(node.arguments) > 0 else node
         # shows
-        #if not str(node.name).startswith('_dom_'):
+        # if not str(node.name).startswith('_dom_'):
         if node.name in self.shows:
             self.shows[node.name].add(len(node.arguments))
         else:
@@ -59,19 +59,19 @@ class TermTransformer(Transformer):
 
     def visit_Interval(self, node):
         for i in range(int(str(node.left)), int(str(node.right))+1):
-            if (str(i) not in self.terms):
+            if str(i) not in self.terms:
                 self.terms.append(str(i))
-            add_to_subdom(self.sub_doms, self.current_f, str(i))
+            add_to_subdom(self.subdoms, self.current_f, str(i))
         return node
 
     def visit_SymbolicTerm(self, node):
-        if (str(node) not in self.terms):
+        if str(node) not in self.terms:
             self.terms.append(str(node))
-        add_to_subdom(self.sub_doms, self.current_f, str(node))
+        add_to_subdom(self.subdoms, self.current_f, str(node))
         return node
 
     def visit_ShowSignature(self, node):
         self.show = True
         if not self.no_show:
-            print (node)
+            print(node)
         return node
