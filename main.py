@@ -1,17 +1,9 @@
-import sys
 import itertools
 import re
-import argparse
 
 import clingo
-from clingo.ast import Transformer, Variable, parse_files, parse_string, ProgramBuilder, Rule, ComparisonOperator
-from clingo.control import Control
-from pprint import pprint
-from clingox.program import Program, ProgramObserver, Remapping
-
 import networkx as nx
-
-from add_subdom import add_to_subdom
+from clingo.ast import Transformer
 
 
 class NglpDlpTransformer(Transformer):  
