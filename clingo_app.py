@@ -1,6 +1,6 @@
 import re
 
-from clingo import Application
+from clingo.application import Application
 from clingo.ast import parse_files, parse_string, ProgramBuilder
 from clingo.control import Control
 from clingox.program import Program, ProgramObserver
@@ -12,29 +12,33 @@ from term_transformer import TermTransformer
 
 class ClingoApp(Application):
     def __init__(self, name, no_show=False, ground_guess=False, ground=False):
-        self.program_name = name
-        self.subdoms = {}
-        self.no_show = no_show
-        self.ground_guess = ground_guess
-        self.ground = ground
-
-        self.prg = Program()
+        self.__program_name = name
+        self.__subdoms = {}
+        self.__no_show = no_show
+        self.__ground_guess = ground_guess
+        self.__ground = ground
+        # ground program representation
+        self.__prg = Program()
 
     def main(self, ctl, files):
+        # Control object for grounding and solving
         ctl_insts = Control()
-        ctl_insts.register_observer(ProgramObserver(self.prg))
+        # Register the observer to build a ground program representation while grounding
+        ctl_insts.register_observer(ProgramObserver(self.__prg))
+
         # read subdomains in #program insts.
         self.__read_subdoms(ctl_insts, files)
-        if self.ground:
-            print(self.prg)
 
-        term_transformer = TermTransformer(self.subdoms, self.no_show)
+        if self.__ground:
+            print(self.__prg)
+
+        term_transformer = TermTransformer(self.__subdoms, self.__no_show)
         parse_files(files, lambda stm: term_transformer(stm))
 
         with ProgramBuilder(ctl) as bld:
             transformer = NglpDlpTransformer(bld, term_transformer.terms, term_transformer.facts,
                                              term_transformer.ng_heads, term_transformer.shows,
-                                             term_transformer.subdoms, self.ground_guess, self.ground)
+                                             term_transformer.subdoms, self.__ground_guess, self.__ground)
             parse_files(files, lambda stm: bld.add(transformer(stm)))
             if transformer.counter > 0:
                 parse_string(":- not sat.", lambda stm: bld.add(stm))
@@ -60,23 +64,27 @@ class ClingoApp(Application):
                             head = ','.join(c)
                             print(f":- {', '.join([f'{p}' + (f'({head})' if len(head) > 0 else '')] + rule_sets)}.")
 
-                if not self.ground_guess:
+                if not self.__ground_guess:
                     for t in transformer.terms:
                         print(f"dom({t}).")
 
-                if not self.no_show:
+                if not self.__no_show:
                     if not term_transformer.show:
                         for f in transformer.shows.keys():
                             for l in transformer.shows[f]:
                                 print(f"#show {f}/{l}.")
 
     def __read_subdoms(self, ctl_insts, files):
-        # ctl_insts = Control()
         for f in files:
+            # Extend the logic program with a (non-ground) logic program in a file.
             ctl_insts.load(f)
+
+        # Ground the program parts after #program insts.
         ctl_insts.ground([("base", []), ("insts", [])])
+
         for k in ctl_insts.symbolic_atoms:
             if str(k.symbol).startswith('_dom_'):
                 var = str(k.symbol).split("(", 1)[0]
                 atom = re.sub(r'^.*?\(', '', str(k.symbol))[:-1]
-                add_to_subdom(self.subdoms, var, atom)
+                # add the domains for variables and corresponding list of atoms to the dictionary of subdomains
+                add_to_subdom(self.__subdoms, var, atom)
