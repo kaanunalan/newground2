@@ -10,7 +10,7 @@ import clingo
 from clingo_app import ClingoApp
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(prog='newground', usage='%(prog)s file [files ...]')
+    parser = argparse.ArgumentParser(prog=sys.argv[0], usage='%(prog)s file [files ...]')
     parser.add_argument('--no-show', action='store_true',
                         help='Do not print #show-statements to avoid compatibility issues. ')
     parser.add_argument('--ground-guess', action='store_true',
