@@ -32,7 +32,10 @@ class ClingoApp(Application):
         if self.__ground:
             print(self.__prg)
 
+        # Initialize term transformer
         term_transformer = TermTransformer(self.__subdoms, self.__no_show)
+        # Parse the programs in the given files and return an abstract syntax tree for each statement via a callback
+        # TODO: Is it necessary?
         parse_files(files, lambda stm: term_transformer(stm))
 
         with ProgramBuilder(ctl) as bld:
@@ -41,10 +44,13 @@ class ClingoApp(Application):
                                              term_transformer.subdoms, self.__ground_guess, self.__ground)
             parse_files(files, lambda stm: bld.add(transformer(stm)))
             if transformer.counter > 0:
+                # TODO: Is it necessary?
                 parse_string(":- not sat.", lambda stm: bld.add(stm))
+                # Prints rule (8)
                 print(":- not sat.")
                 # parse_string(f"sat :- {','.join([f'sat_r{i}' for i in range(1, transformer.counter+1)])}.",
                 # lambda stm: self.bld.add(stm))
+                # Prints rule (6)
                 print(f"sat :- {','.join([f'sat_r{i}' for i in range(1, transformer.counter + 1)])}.")
 
                 for p in transformer.f:
