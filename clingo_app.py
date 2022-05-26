@@ -30,6 +30,8 @@ class ClingoApp(Application):
         self.__read_subdoms(ctl_insts, files)
 
         if self.__ground:
+            # TODO: Check if it is possible to remove the call above and call it in the 'if' statement
+            # self.__read_subdoms(ctl_insts, files)
             print(prg)
 
         self.__transform_nglp_dlp(ctl, files)
