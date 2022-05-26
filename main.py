@@ -5,7 +5,7 @@ This module handles the arguments and runs the application.
 import argparse
 import sys
 
-import clingo
+from clingo.application import clingo_main
 
 from clingo_app import ClingoApp
 
@@ -37,4 +37,4 @@ if __name__ == "__main__":
         ground_guess = True
         ground = True
 
-    clingo.clingo_main(ClingoApp(sys.argv[0], no_show, ground_guess, ground), sys.argv[1:])
+    clingo_main(ClingoApp(sys.argv[0], no_show, ground_guess, ground), sys.argv[1:])
