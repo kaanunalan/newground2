@@ -9,27 +9,30 @@ from clingo.ast import Transformer
 class NglpDlpTransformer(Transformer):
     def __init__(self, bld, terms, facts, ng_heads, shows, subdoms, ground_guess, ground):
         self.rules = False
-        self.ng = False
+        self.ng = False  # If the program is non-ground
         self.bld = bld
-        self.terms = terms
-        self.facts = facts
-        self.ng_heads = ng_heads
-        self.subdoms = subdoms
+        self.terms = terms  # Terms occuring in the program
+        self.facts = facts  # Facts, arities and arguments
+        self.ng_heads = ng_heads  # Rule heads with their arities
+        self.subdoms = subdoms  # Subdomains
         self.ground_guess = ground_guess
         self.ground = ground
 
-        self.cur_anon = 0
-        self.cur_var = []
+        self.cur_anon = 0  # Number of anonymous variables in a rule
+        self.cur_var = []  # List of variables in a rule
         self.cur_func = []
         self.cur_func_sign = []
         self.cur_comp = []
-        self.shows = shows
+        self.shows = shows  # Predicates and their arities (for #show)
         self.foundness = {}
         self.f = {}
-        self.counter = 0
+        self.rule_counter = 0  # Counts rules in the program
         self.g_counter = 'A'
 
-    def _reset_after_rule(self):
+    def __reset_after_rule(self):
+        """
+        Resets configuration after processing of a rule.
+        """
         self.cur_var = []
         self.cur_func = []
         self.cur_func_sign = []
@@ -37,12 +40,14 @@ class NglpDlpTransformer(Transformer):
         self.cur_anon = 0
         self.ng = False
         # self.head = None
+        # TODO: Why don't we reset foundedness and f?
 
     def visit_Rule(self, node):
+        # if not part of #program rules
         if not self.rules:
-            self._reset_after_rule()
+            self.__reset_after_rule()
             if not self.ground:
-                self._outputNodeFormatConform(node)
+                self.__outputNodeFormatConform(node)
             return node
 
         # check if AST is non-ground
@@ -50,7 +55,7 @@ class NglpDlpTransformer(Transformer):
 
         # if so: handle grounding
         if self.ng:
-            self.counter += 1
+            self.rule_counter += 1
             if str(node.head) != "#false":
                 head = self.cur_func[0]
             else:
@@ -62,10 +67,10 @@ class NglpDlpTransformer(Transformer):
                 disjunction = ""
                 if v in self.subdoms:
                     for t in self.subdoms[v]:  # domain
-                        disjunction += f"r{self.counter}_{v}({t}) | "
+                        disjunction += f"r{self.rule_counter}_{v}({t}) | "
                 else:
                     for t in self.terms:  # domain
-                        disjunction += f"r{self.counter}_{v}({t}) | "
+                        disjunction += f"r{self.rule_counter}_{v}({t}) | "
                 if len(disjunction) > 0:
                     disjunction = disjunction[:-3] + "."
                     print(disjunction)
@@ -73,11 +78,11 @@ class NglpDlpTransformer(Transformer):
                 if v in self.subdoms:
                     for t in self.subdoms[v]:  # domain
                         # r1_x(1) :- sat. r1_x(2) :- sat. ...
-                        print(f"r{self.counter}_{v}({t}) :- sat.")
+                        print(f"r{self.rule_counter}_{v}({t}) :- sat.")
                 else:
                     for t in self.terms:  # domain
                         # r1_x(1) :- sat. r1_x(2) :- sat. ...
-                        print(f"r{self.counter}_{v}({t}) :- sat.")
+                        print(f"r{self.rule_counter}_{v}({t}) :- sat.")
 
             # SAT
             covered_cmp = {}  # reduce SAT rules when compare-operators are pre-checked
@@ -96,26 +101,26 @@ class NglpDlpTransformer(Transformer):
 
                 for c in combinations:
                     c_varset = tuple([c[vars.index(v)] for v in vars_set])
-                    if not self._checkForCoveredSubsets(covered_cmp, list(vars_set),
-                                                        c_varset):  # smaller sets are also possible
+                    if not self.__check_for_covered_subsets(covered_cmp, list(vars_set),
+                                                         c_varset):  # smaller sets are also possible
                         # if c_varset not in covered_cmp[vars_set]:
                         f_args = ""
                         # vars in atom
                         interpretation = ""
                         for v in var:
-                            interpretation += f"r{self.counter}_{v}({c[vars.index(v)]}), " if v in self.cur_var else f""
+                            interpretation += f"r{self.rule_counter}_{v}({c[vars.index(v)]}), " if v in self.cur_var else f""
                             f_args += f"{c[vars.index(v)]}," if v in self.cur_var else f"{v},"
                         c1 = int(c[vars.index(var[0])] if var[0] in vars else var[0])
                         c2 = int(c[vars.index(var[1])] if var[1] in vars else var[1])
-                        if not self._compareTerms(f.comparison, c1, c2):
+                        if not self.__compare_terms(f.comparison, c1, c2):
                             covered_cmp[vars_set].add(c_varset)
-                            print(f"sat_r{self.counter} :- {interpretation[:-2]}.")
+                            print(f"sat_r{self.rule_counter} :- {interpretation[:-2]}.")
 
             for f in self.cur_func:
                 args_len = len(f.arguments)
                 if args_len == 0:
                     print(
-                        f"sat_r{self.counter} :-{'' if (self.cur_func_sign[self.cur_func.index(f)] or f is head) else ' not'} {f}.")
+                        f"sat_r{self.rule_counter} :-{'' if (self.cur_func_sign[self.cur_func.index(f)] or f is head) else ' not'} {f}.")
                     continue
                 arguments = re.sub(r'^.*?\(', '', str(f))[:-1].split(',')  # all arguments (incl. duplicates / terms)
                 var = list(
@@ -129,14 +134,14 @@ class NglpDlpTransformer(Transformer):
 
                 for c in combinations:
                     c_varset = tuple([c[vars.index(v)] for v in vars_set])
-                    if not self._checkForCoveredSubsets(covered_cmp, list(vars_set),
-                                                        c_varset):  # smaller sets are also possible
+                    if not self.__check_for_covered_subsets(covered_cmp, list(vars_set),
+                                                         c_varset):  # smaller sets are also possible
                         # if vars_set not in covered_cmp or c_varset not in covered_cmp[vars_set]:
                         f_args = ""
                         # vars in atom
                         interpretation = ""
                         for v in var:
-                            interpretation += f"r{self.counter}_{v}({c[vars.index(v)]}), " if v in self.cur_var else f""
+                            interpretation += f"r{self.rule_counter}_{v}({c[vars.index(v)]}), " if v in self.cur_var else f""
                             f_args += f"{c[vars.index(v)]}," if v in self.cur_var else f"{v},"
 
                         if len(f_args) > 0:
@@ -145,9 +150,10 @@ class NglpDlpTransformer(Transformer):
                             f_args = f"{f.name}"
 
                         print(
-                            f"sat_r{self.counter} :- {interpretation}{'' if (self.cur_func_sign[self.cur_func.index(f)] or f is head) else 'not '}{f_args}.")
+                            f"sat_r{self.rule_counter} :- {interpretation}{'' if (self.cur_func_sign[self.cur_func.index(f)] or f is head) else 'not '}{f_args}.")
 
             # reduce duplicates; track combinations
+            # TODO: What do these three lines do?
             sat_per_f = {}
             for f in self.cur_func:
                 sat_per_f[f] = []
@@ -175,7 +181,6 @@ class NglpDlpTransformer(Transformer):
                         f"{head.name}({','.join(c[h_vars.index(a)] if a in h_vars else a for a in h_args)})" for c in
                         combinations]
                     print(f"{{{';'.join(h_interpretations)}}}." if h_args_len > 0 else f"{{{head.name}}}.")
-
                 g_r = {}
 
                 # path checking
@@ -209,18 +214,19 @@ class NglpDlpTransformer(Transformer):
                             doms = ','.join(f'dom({v})' for v in h_vars if v not in g_r[r])
                             if len(h_vars) == len(g_r[r]):  # removed none
                                 print(
-                                    f"1<={{r{self.counter}f_{r}({rem_interpretation}): dom({r})}}<=1 :- {head_interpretation}.")
+                                    f"1<={{r{self.rule_counter}f_{r}({rem_interpretation}): dom({r})}}<=1 :- {head_interpretation}.")
                             elif len(g_r[r]) == 0:  # removed all
-                                print(f"1<={{r{self.counter}f_{r}({rem_interpretation}): dom({r})}}<=1.")
+                                print(f"1<={{r{self.rule_counter}f_{r}({rem_interpretation}): dom({r})}}<=1.")
                             else:  # removed some
                                 print(
-                                    f"1<={{r{self.counter}f_{r}({rem_interpretation}): dom({r})}}<=1 :- {head_interpretation}, {doms}.")
+                                    f"1<={{r{self.rule_counter}f_{r}({rem_interpretation}): dom({r})}}<=1 :- {head_interpretation}, {doms}.")
                         else:
                             head_interpretation = f"{head.name}" + (
                                 f"({','.join([c[g_r[r].index(a)] if a in g_r[r] else a for a in h_args])})" if h_args_len > 0 else "")
                             rem_interpretation = ','.join([c[g_r[r].index(v)] for v in h_args_nd if v in g_r[r]])
                             rem_interpretations = ';'.join(
-                                [f"r{self.counter}f_{r}({v}{',' + rem_interpretation if h_args_len > 0 else ''})" for v
+                                [f"r{self.rule_counter}f_{r}({v}{',' + rem_interpretation if h_args_len > 0 else ''})"
+                                 for v
                                  in (self.subdoms[r] if r in self.subdoms else self.terms)])
                             mis_vars = [v for v in h_vars if v not in g_r[r]]
                             if len(h_vars) == len(g_r[r]):  # removed none
@@ -245,7 +251,7 @@ class NglpDlpTransformer(Transformer):
                         [a for a in f_args if a in self.cur_var]))  # which have to be grounded per combination
 
                     f_rem = [v for v in f_vars if v in rem]  # remaining vars for current function (not in head)
-                    f_vars_needed = self._getVarsNeeded(h_vars, f_vars, f_rem, g)
+                    f_vars_needed = self.__get_vars_needed(h_vars, f_vars, f_rem, g)
 
                     vars_set = frozenset(f_vars_needed + f_rem)
                     if vars_set not in covered_cmp:
@@ -257,10 +263,10 @@ class NglpDlpTransformer(Transformer):
                             [c[f_vars_needed.index(v)] if v in f_vars_needed else c[len(f_vars_needed) + f_rem.index(v)]
                              for v in vars_set])
 
-                        if not self._checkForCoveredSubsets(covered_cmp, list(vars_set),
-                                                            c_varset):  # smaller sets are also possible
+                        if not self.__check_for_covered_subsets(covered_cmp, list(vars_set),
+                                                             c_varset):  # smaller sets are also possible
                             # if c_varset not in covered_cmp[vars_set]:  # smaller sets are also possible
-                            interpretation, interpretation_incomplete, combs_covered, index_vars = self._generateCombinationInformation(
+                            interpretation, interpretation_incomplete, combs_covered, index_vars = self.__generate_combination_information(
                                 h_args, f_vars_needed, c, head)
                             if combs_covered is None or combs_covered == []:
                                 continue
@@ -274,21 +280,21 @@ class NglpDlpTransformer(Transformer):
                                 f"{f_args[1]}" if f_args[
                                                       1] in self.terms else f"{c[len(f_vars_needed) + f_rem.index(f_args[1])]}")
 
-                            if not self._compareTerms(f.comparison, f_args_unf_left, f_args_unf_right):
+                            if not self.__compare_terms(f.comparison, f_args_unf_left, f_args_unf_right):
                                 f_rem_atoms = [
-                                    f"r{self.counter}f_{v}({','.join([c[len(f_vars_needed) + f_rem.index(v)]] + [i for id, i in enumerate(interpretation) if h_args[id] in g_r[v]])})"
+                                    f"r{self.rule_counter}f_{v}({','.join([c[len(f_vars_needed) + f_rem.index(v)]] + [i for id, i in enumerate(interpretation) if h_args[id] in g_r[v]])})"
                                     for v in f_args_nd if v in rem]
 
                                 covered_cmp[vars_set].add(c_varset)
 
-                                unfound_atom = f"r{self.counter}_unfound" + (
+                                unfound_atom = f"r{self.rule_counter}_unfound" + (
                                     f"_{''.join(index_vars)}" if len(f_vars_needed) < len(h_vars) else "") + (
                                                    f"({','.join(interpretation_incomplete)})" if len(
                                                        interpretation_incomplete) > 0 else "")
                                 print(unfound_atom + (
                                     f" :- {', '.join(f_rem_atoms)}" if len(f_rem_atoms) > 0 else "") + ".")
                                 # print (f"{h_args_len} | {combs_covered} | {index_vars}")
-                                self._addToFoundednessCheck(head.name, h_args_len, combs_covered, self.counter,
+                                self.__add_to_foundedness_check(head.name, h_args_len, combs_covered, self.rule_counter,
                                                             index_vars)
 
                 # over every body-atom
@@ -303,7 +309,7 @@ class NglpDlpTransformer(Transformer):
 
                         f_rem = [v for v in f_vars if v in rem]  # remaining vars for current function (not in head)
 
-                        f_vars_needed = self._getVarsNeeded(h_vars, f_vars, f_rem, g)
+                        f_vars_needed = self.__get_vars_needed(h_vars, f_vars, f_rem, g)
 
                         vars_set = frozenset(f_vars_needed + f_rem)
 
@@ -315,10 +321,10 @@ class NglpDlpTransformer(Transformer):
                                 [c[f_vars_needed.index(v)] if v in f_vars_needed else c[
                                     len(f_vars_needed) + f_rem.index(v)]
                                  for v in vars_set])
-                            if not self._checkForCoveredSubsets(covered_cmp, list(vars_set),
-                                                                c_varset):  # smaller sets are also possible
+                            if not self.__check_for_covered_subsets(covered_cmp, list(vars_set),
+                                                                 c_varset):  # smaller sets are also possible
                                 # if vars_set not in covered_cmp or c_varset not in covered_cmp[vars_set]:
-                                interpretation, interpretation_incomplete, combs_covered, index_vars = self._generateCombinationInformation(
+                                interpretation, interpretation_incomplete, combs_covered, index_vars = self.__generate_combination_information(
                                     h_args, f_vars_needed, c, head)
                                 if combs_covered is None or combs_covered == []:
                                     continue
@@ -335,13 +341,13 @@ class NglpDlpTransformer(Transformer):
                                     f_interpretation = f"{f.name}"
 
                                 f_rem_atoms = [
-                                    f"r{self.counter}f_{v}({','.join([c[len(f_vars_needed) + f_rem.index(v)]] + [i for id, i in enumerate(interpretation) if h_args[id] in g_r[v]])})"
+                                    f"r{self.rule_counter}f_{v}({','.join([c[len(f_vars_needed) + f_rem.index(v)]] + [i for id, i in enumerate(interpretation) if h_args[id] in g_r[v]])})"
                                     for v in f_args_nd if v in rem]
 
                                 f_interpretation = ('' if self.cur_func_sign[
                                     self.cur_func.index(f)] else 'not ') + f_interpretation
                                 # r1_unfound(V1,V2) :- p(V1,V2), not f(Z), r1_Z(Z,V1,V2).
-                                unfound_atom = f"r{self.counter}_unfound" + (
+                                unfound_atom = f"r{self.rule_counter}_unfound" + (
                                     f"_{''.join(index_vars)}" if len(f_vars_needed) < len(h_vars) else "") + (
                                                    f"({','.join(interpretation_incomplete)})" if len(
                                                        interpretation_incomplete) > 0 else "")
@@ -349,9 +355,8 @@ class NglpDlpTransformer(Transformer):
                                                      f"{', '.join([f_interpretation] + f_rem_atoms)}.")
 
                                 # predicate arity combinations rule indices
-                                self._addToFoundednessCheck(head.name, h_args_len, combs_covered, self.counter,
+                                self.__add_to_foundedness_check(head.name, h_args_len, combs_covered, self.rule_counter,
                                                             index_vars)
-
 
         else:  # found-check for ground-rules (if needed) (pred, arity, combinations, rule, indices)
             pred = str(node.head).split('(', 1)[0]
@@ -359,6 +364,7 @@ class NglpDlpTransformer(Transformer):
             arity = len(arguments)
             arguments = ','.join(arguments)
 
+            # If such a head predicate with the given arity exists but there is no such fact
             if pred in self.ng_heads and arity in self.ng_heads[pred] \
                     and not (pred in self.facts and arity in self.facts[pred] and arguments in self.facts[pred][arity]):
 
@@ -369,15 +375,21 @@ class NglpDlpTransformer(Transformer):
                         neg = "not "
                     print(f"r{self.g_counter}_unfound({arguments}) :- "
                           f"{neg + str(body_atom)}.")
-                self._addToFoundednessCheck(pred, arity, [arguments.split(',')], self.g_counter, range(0, arity))
+                self.__add_to_foundedness_check(pred, arity, [arguments.split(',')], self.g_counter, range(0, arity))
                 self.g_counter = chr(ord(self.g_counter) + 1)
             # print rule as it is
-            self._outputNodeFormatConform(node)
+            self.__outputNodeFormatConform(node)
 
-        self._reset_after_rule()
+        self.__reset_after_rule()
         return node
 
     def visit_Literal(self, node):
+        """
+        Visits literal in the program. If it is not #false, its sign is saved.
+
+        :param node: Literal in the program.
+        :return: Node of the AST.
+        """
         if str(node) != "#false":
             if node.atom.ast_type is clingo.ast.ASTType.SymbolicAtom:  # comparisons are reversed by parsing, therefore always using not is sufficient
                 self.cur_func_sign.append(str(node).startswith("not "))
@@ -385,18 +397,31 @@ class NglpDlpTransformer(Transformer):
         return node
 
     def visit_Function(self, node):
+        """
+        Visits functions (or predicates) of the program and saves their names and arities.
+
+        :param node: Function node of the program.
+        :return: Node of the AST.
+        """
         # shows
         if node.name in self.shows:
             self.shows[node.name].add(len(node.arguments))
         else:
             self.shows[node.name] = {len(node.arguments)}
 
-        node = node.update(**self.visit_children(node))
+        node = node.update(**self.visit_children(node))  # TODO: What does this call do?
         self.cur_func.append(node)
 
         return node
 
     def visit_Variable(self, node):
+        """
+        Visits variables of the program in order to determine if the program is non-ground and
+        saves them. It also distinguishes anonymous variables.
+
+        :param node: Variable in the program.
+        :return Node of the AST.
+        """
         self.ng = True
         if (str(node) not in self.cur_var) and str(node) not in self.terms:
             if str(node) == '_':
@@ -406,9 +431,17 @@ class NglpDlpTransformer(Transformer):
         return node
 
     def visit_SymbolicTerm(self, node):
+        # TODO: What does this method do?
         return node
 
     def visit_Program(self, node):
+        """
+        Visits the program directives in order to activate the partial body-decoupled grounding
+        if #program rules.
+
+        :param node: Program directive in the program.
+        :return: Node of the AST.
+        """
         if node.name == 'rules':
             self.rules = True
         else:
@@ -416,6 +449,12 @@ class NglpDlpTransformer(Transformer):
         return node
 
     def visit_Comparison(self, node):
+        """
+        Checks if the comparison operands are variables or terms and saves them.
+        
+        :param node: Comparison in the program.
+        :return: Ndoe of the AST.
+        """
         # currently implements only terms/variables
         assert (
                 node.left.ast_type is clingo.ast.ASTType.Variable or node.left.ast_type is clingo.ast.ASTType.SymbolicTerm)
@@ -426,7 +465,13 @@ class NglpDlpTransformer(Transformer):
         self.visit_children(node)
         return node
 
-    def _getCompOperator(self, comp):
+    def __get_comp_operator(self, comp):
+        """
+        Gets the comparison operator as string.
+
+        :param comp: Given comparison operator.
+        :return: Corresponding string representing the comparison operator.
+        """
         if comp is int(clingo.ast.ComparisonOperator.Equal):
             return "="
         elif comp is int(clingo.ast.ComparisonOperator.NotEqual):
@@ -442,7 +487,15 @@ class NglpDlpTransformer(Transformer):
         else:
             assert False  # not implemented
 
-    def _compareTerms(self, comp, c1, c2):
+    def __compare_terms(self, comp, c1, c2):
+        """
+        Compares terms using the comparison opeator.
+
+        :param comp: Given comparison operator.
+        :param c1: First operand.
+        :param c2: Second operand.
+        :return: 'True' if comparison is true, 'False' otherwise.
+        """
         if comp is int(clingo.ast.ComparisonOperator.Equal):
             return c1 == c2
         elif comp is int(clingo.ast.ComparisonOperator.NotEqual):
@@ -458,7 +511,14 @@ class NglpDlpTransformer(Transformer):
         else:
             assert (False)  # not implemented
 
-    def _checkForCoveredSubsets(self, base, current, c_varset):
+    def __check_for_covered_subsets(self, base, current, c_varset):
+        """
+        Checks if subset is already covered
+        :param base: Dictionary of covered tuple subsets for a given variable set.
+        :param current: List of given variables.
+        :param c_varset: Tuple subset.
+        :return: 'True' if subset is already covered, 'False' otherwise.
+        """
         for key in base:
             if key.issubset(current):
                 c = tuple([c_varset[current.index(p)] for p in list(key)])
@@ -466,7 +526,7 @@ class NglpDlpTransformer(Transformer):
                     return True
         return False
 
-    def _getVarsNeeded(self, h_vars, f_vars, f_rem, g):
+    def __get_vars_needed(self, h_vars, f_vars, f_rem, g):
         f_vars_needed = [f for f in f_vars if f in h_vars]  # bounded head vars which are needed for foundation
         for r in f_rem:
             for n in nx.dfs_postorder_nodes(g, source=r):
@@ -474,7 +534,7 @@ class NglpDlpTransformer(Transformer):
                     f_vars_needed.append(n)
         return f_vars_needed
 
-    def _generateCombinationInformation(self, h_args, f_vars_needed, c, head):
+    def __generate_combination_information(self, h_args, f_vars_needed, c, head):
         interpretation = []  # interpretation-list
         interpretation_incomplete = []  # uncomplete; without removed vars
         nnv = []  # not needed vars
@@ -504,7 +564,8 @@ class NglpDlpTransformer(Transformer):
                 for id, item in enumerate(covered):
                     if item in nnv:
                         covered[id] = clo[nnv.index(item)]
-                if head.name in self.facts and len(h_args) in self.facts[head.name] and ','.join(covered) in self.facts[head.name][len(h_args)]:
+                if head.name in self.facts and len(h_args) in self.facts[head.name] and ','.join(covered) in \
+                        self.facts[head.name][len(h_args)]:
                     # no foundation check for this combination, its a fact!
                     continue
                 combs_covered.append(covered)
@@ -519,7 +580,7 @@ class NglpDlpTransformer(Transformer):
 
         return interpretation, interpretation_incomplete, combs_covered, index_vars
 
-    def _addToFoundednessCheck(self, pred, arity, combinations, rule, indices):
+    def __add_to_foundedness_check(self, pred, arity, combinations, rule, indices):
         indices = tuple(indices)
 
         for c in combinations:
@@ -541,7 +602,12 @@ class NglpDlpTransformer(Transformer):
             else:
                 self.f[pred][arity][c][rule].add(indices)
 
-    def _outputNodeFormatConform(self, node):
+    def __outputNodeFormatConform(self, node):
+        """
+        Prints the rule node as a valid program rule.
+
+        :param node: Rule in  the program.
+        """
         if str(node.head) == "#false":  # catch constraints and print manually since clingo uses #false
             print(f":- {', '.join(str(n) for n in node.body)}.")
         else:
