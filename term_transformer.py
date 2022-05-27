@@ -11,14 +11,14 @@ from add_subdom import add_to_subdom
 
 class TermTransformer(Transformer):
     def __init__(self, subdoms, no_show=False):
-        self.__terms = [] # Terms occuring in the program
-        self.__subdoms = subdoms # Subdomains
-        self.__facts = {} # Facts, arities and arguments
-        self.__ng_heads = {} # Rule heads with their arities
-        self.__ng = False # If the program is non-ground
+        self.__terms = []  # Terms occuring in the program
+        self.__subdoms = subdoms  # Subdomains
+        self.__facts = {}  # Facts, arities and arguments
+        self.__ng_heads = {}  # Rule heads with their arities
+        self.__ng = False  # If the program is non-ground
         self.__show = False
-        self.__shows = {} # Predicates and their arities
-        self.__current_f = None # Current function (or predicate)
+        self.__shows = {}  # Predicates and their arities
+        self.__current_f = None  # Current function (or predicate)
         self.__no_show = no_show
 
     def visit_Rule(self, node):
@@ -92,7 +92,7 @@ class TermTransformer(Transformer):
         :param node: Interval in the program.
         :return Node of the AST.
         """
-        for i in range(int(str(node.left)), int(str(node.right))+1):
+        for i in range(int(str(node.left)), int(str(node.right)) + 1):
             if str(i) not in self.__terms:
                 self.__terms.append(str(i))
             add_to_subdom(self.__subdoms, self.__current_f, str(i))
@@ -146,5 +146,3 @@ class TermTransformer(Transformer):
     ng_heads = property(__get_ng_heads)
     shows = property(__get_shows)
     show = property(__get_show)
-
-
