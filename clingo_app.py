@@ -68,7 +68,6 @@ class ClingoApp(Application):
                                              term_transformer.subdoms, self.__ground_guess, self.__ground)
             parse_files(files, lambda stm: bld.add(transformer(stm)))
             if transformer.rule_counter > 0:
-                # TODO: Is it necessary?
                 parse_string(":- not sat.", lambda stm: bld.add(stm))
                 # Prints rule (8)
                 print(":- not sat.")

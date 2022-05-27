@@ -40,7 +40,6 @@ class NglpDlpTransformer(Transformer):
         self.cur_anon = 0
         self.ng = False
         # self.head = None
-        # TODO: Why don't we reset foundedness and f?
 
     def visit_Rule(self, node):
         # if not part of #program rules
@@ -151,12 +150,6 @@ class NglpDlpTransformer(Transformer):
 
                         print(
                             f"sat_r{self.rule_counter} :- {interpretation}{'' if (self.cur_func_sign[self.cur_func.index(f)] or f is head) else 'not '}{f_args}.")
-
-            # reduce duplicates; track combinations
-            # TODO: What do these three lines do?
-            sat_per_f = {}
-            for f in self.cur_func:
-                sat_per_f[f] = []
 
             # FOUND NEW
             if head is not None:
@@ -409,7 +402,7 @@ class NglpDlpTransformer(Transformer):
         else:
             self.shows[node.name] = {len(node.arguments)}
 
-        node = node.update(**self.visit_children(node))  # TODO: What does this call do?
+        node = node.update(**self.visit_children(node))
         self.cur_func.append(node)
 
         return node
@@ -431,7 +424,6 @@ class NglpDlpTransformer(Transformer):
         return node
 
     def visit_SymbolicTerm(self, node):
-        # TODO: What does this method do?
         return node
 
     def visit_Program(self, node):
