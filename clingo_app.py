@@ -1,3 +1,7 @@
+"""
+This module extends the standard clingo application.
+"""
+
 import re
 
 from clingo.application import Application
@@ -26,12 +30,8 @@ class ClingoApp(Application):
         # Register the observer to build a ground program representation while grounding
         ctl_insts.register_observer(ProgramObserver(prg))
 
-        # read subdomains in #program insts.
-        self.__read_subdoms(ctl_insts, files)
-
         if self.__ground:
-            # TODO: Check if it is possible to remove the call above and call it in the 'if' statement
-            # self.__read_subdoms(ctl_insts, files)
+            self.__read_subdoms(ctl_insts, files)
             print(prg)
 
         self.__transform_nglp_dlp(ctl, files)
@@ -67,7 +67,7 @@ class ClingoApp(Application):
                                              term_transformer.ng_heads, term_transformer.shows,
                                              term_transformer.subdoms, self.__ground_guess, self.__ground)
             parse_files(files, lambda stm: bld.add(transformer(stm)))
-            if transformer.counter > 0:
+            if transformer.rule_counter > 0:
                 # TODO: Is it necessary?
                 parse_string(":- not sat.", lambda stm: bld.add(stm))
                 # Prints rule (8)
@@ -76,7 +76,7 @@ class ClingoApp(Application):
                 # lambda stm: self.bld.add(stm))
 
                 # Prints rule (6)
-                print(f"sat :- {','.join([f'sat_r{i}' for i in range(1, transformer.counter + 1)])}.")
+                print(f"sat :- {','.join([f'sat_r{i}' for i in range(1, transformer.rule_counter + 1)])}.")
 
                 for p in transformer.f:
                     for arity in transformer.f[p]:
