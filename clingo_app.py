@@ -30,8 +30,9 @@ class ClingoApp(Application):
         # Register the observer to build a ground program representation while grounding
         ctl_insts.register_observer(ProgramObserver(prg))
 
+        # read subdomains in #program insts.
+        self.__read_subdoms(ctl_insts, files)
         if self.__ground:
-            self.__read_subdoms(ctl_insts, files)
             print(prg)
 
         self.__transform_nglp_dlp(ctl, files)
@@ -59,7 +60,6 @@ class ClingoApp(Application):
         # Initialize the term transformer
         term_transformer = TermTransformer(self.__subdoms, self.__no_show)
         # Parse the programs in the given files and return an abstract syntax tree for each statement via a callback
-        # TODO: Is it necessary?
         parse_files(files, lambda stm: term_transformer(stm))
 
         with ProgramBuilder(ctl) as bld:
