@@ -5,7 +5,7 @@ This module extends the standard clingo application.
 import re
 
 from clingo.application import Application
-from clingo.ast import parse_files, parse_string, ProgramBuilder
+from clingo.ast import parse_files, ProgramBuilder
 from clingo.control import Control
 from clingox.program import Program, ProgramObserver
 
@@ -67,45 +67,12 @@ class ClingoApp(Application):
                                              term_transformer.ng_heads, term_transformer.shows,
                                              term_transformer.subdoms, self.__ground_guess, self.__ground)
             parse_files(files, lambda stm: bld.add(transformer(stm)))
-            if transformer.rule_counter > 0:
-                parse_string(":- not sat.", lambda stm: bld.add(stm))
-                # Prints rule (8)
-                print(":- not sat.")
-                # parse_string(f"sat :- {','.join([f'sat_r{i}' for i in range(1, transformer.counter+1)])}.",
-                # lambda stm: self.bld.add(stm))
 
-                # Prints rule (6)
-                print(f"sat :- {','.join([f'sat_r{i}' for i in range(1, transformer.rule_counter + 1)])}.")
-
-                for p in transformer.f:
-                    for arity in transformer.f[p]:
-                        for c in transformer.f[p][arity]:
-                            rule_sets = []
-                            for r in transformer.f[p][arity][c]:
-                                sum_sets = []
-                                for subset in transformer.f[p][arity][c][r]:
-                                    # print ([c[int(i)] for i in subset])
-                                    sum_sets.append(
-                                        f"1:r{r}_unfound{'_' + ''.join(subset) if len(subset) < arity else ''}"
-                                        + (f"({','.join([c[int(i)] for i in subset])})"
-                                           if len(subset) > 0 else ""))
-                                sum_atom = f"#sum {{{'; '.join(sum_sets)}}} >= 1"
-                                rule_sets.append(sum_atom)
-                            head = ','.join(c)
-                            print(f":- {', '.join([f'{p}' + (f'({head})' if len(head) > 0 else '')] + rule_sets)}.")
-
-                self.__handle_ground_guess(transformer)
-
-                self.__handle_no_show(transformer, term_transformer)
+            transformer.print_sat_and_foundedness_rules(bld)
+            transformer.handle_ground_guess()
+            transformer.handle_no_show(term_transformer, self.__no_show)
 
     def __handle_ground_guess(self, nglp_dlp_transformer):
         if not self.__ground_guess:
-            for t in nglp_dlp_transformer.terms:
+            for t in nglp_dlp_transformer.__terms:
                 print(f"dom({t}).")
-
-    def __handle_no_show(self, nglp_dlp_transformer, term_transformer):
-        if not self.__no_show:
-            if not term_transformer.show:
-                for f in nglp_dlp_transformer.shows.keys():
-                    for l in nglp_dlp_transformer.shows[f]:
-                        print(f"#show {f}/{l}.")
