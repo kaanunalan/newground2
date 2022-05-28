@@ -68,7 +68,8 @@ class ClingoApp(Application):
                                              term_transformer.subdoms, self.__ground_guess, self.__ground)
             parse_files(files, lambda stm: bld.add(transformer(stm)))
 
-            transformer.print_sat_and_foundedness_rules(bld)
+            transformer.print_sat_rules(bld)
+            transformer.print_foundedness_rules()
             transformer.handle_ground_guess()
             transformer.handle_no_show(term_transformer, self.__no_show)
 

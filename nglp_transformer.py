@@ -21,7 +21,7 @@ class NglpDlpTransformer(Transformer):
         self.__cur_anon = 0  # Number of anonymous variables in a rule
         self.__cur_var = []  # List of variables in a rule
         self.__cur_func = []
-        self.__cur_func_sign = []
+        self.__cur_func_sign = []  # Boolean list for signs of literals
         self.__cur_comp = []
         self.__shows = shows  # Predicates and their arities (for #show)
         self.__founded = {}
@@ -60,96 +60,11 @@ class NglpDlpTransformer(Transformer):
             else:
                 head = None
 
-            # MOD
-            # domaining per rule variable
-            for v in self.__cur_var:  # variables
-                disjunction = ""
-                if v in self.__subdoms:
-                    for t in self.__subdoms[v]:  # domain
-                        disjunction += f"r{self.__rule_counter}_{v}({t}) | "
-                else:
-                    for t in self.__terms:  # domain
-                        disjunction += f"r{self.__rule_counter}_{v}({t}) | "
-                if len(disjunction) > 0:
-                    disjunction = disjunction[:-3] + "."
-                    print(disjunction)
+            # Print rules (3) and (7)
+            self.__guess_sat_saturate_assignments()
 
-                if v in self.__subdoms:
-                    for t in self.__subdoms[v]:  # domain
-                        # r1_x(1) :- sat. r1_x(2) :- sat. ...
-                        print(f"r{self.__rule_counter}_{v}({t}) :- sat.")
-                else:
-                    for t in self.__terms:  # domain
-                        # r1_x(1) :- sat. r1_x(2) :- sat. ...
-                        print(f"r{self.__rule_counter}_{v}({t}) :- sat.")
-
-            # SAT
-            covered_cmp = {}  # reduce SAT rules when compare-operators are pre-checked
-            for f in self.__cur_comp:
-                arguments = [str(f.left), str(f.right)]  # all arguments (incl. duplicates / terms)
-                var = list(dict.fromkeys(arguments))  # arguments (without duplicates / incl. terms)
-                vars = list(dict.fromkeys(
-                    [a for a in arguments if a in self.__cur_var]))  # which have to be grounded per combination
-
-                dom_list = [self.__subdoms[v] if v in self.__subdoms else self.__terms for v in vars]
-                combinations = [p for p in itertools.product(*dom_list)]
-
-                vars_set = frozenset(vars)
-                if vars_set not in covered_cmp:
-                    covered_cmp[vars_set] = set()
-
-                for c in combinations:
-                    c_varset = tuple([c[vars.index(v)] for v in vars_set])
-                    if not self.__check_for_covered_subsets(covered_cmp, list(vars_set),
-                                                         c_varset):  # smaller sets are also possible
-                        # if c_varset not in covered_cmp[vars_set]:
-                        f_args = ""
-                        # vars in atom
-                        interpretation = ""
-                        for v in var:
-                            interpretation += f"r{self.__rule_counter}_{v}({c[vars.index(v)]}), " if v in self.__cur_var else f""
-                            f_args += f"{c[vars.index(v)]}," if v in self.__cur_var else f"{v},"
-                        c1 = int(c[vars.index(var[0])] if var[0] in vars else var[0])
-                        c2 = int(c[vars.index(var[1])] if var[1] in vars else var[1])
-                        if not self.__compare_terms(f.comparison, c1, c2):
-                            covered_cmp[vars_set].add(c_varset)
-                            print(f"sat_r{self.__rule_counter} :- {interpretation[:-2]}.")
-
-            for f in self.__cur_func:
-                args_len = len(f.arguments)
-                if args_len == 0:
-                    print(
-                        f"sat_r{self.__rule_counter} :-{'' if (self.__cur_func_sign[self.__cur_func.index(f)] or f is head) else ' not'} {f}.")
-                    continue
-                arguments = re.sub(r'^.*?\(', '', str(f))[:-1].split(',')  # all arguments (incl. duplicates / terms)
-                var = list(
-                    dict.fromkeys(arguments)) if args_len > 0 else []  # arguments (without duplicates / incl. terms)
-                vars = list(dict.fromkeys([a for a in arguments if
-                                           a in self.__cur_var])) if args_len > 0 else []  # which have to be grounded per combination
-
-                dom_list = [self.__subdoms[v] if v in self.__subdoms else self.__terms for v in vars]
-                combinations = [p for p in itertools.product(*dom_list)]
-                vars_set = frozenset(vars)
-
-                for c in combinations:
-                    c_varset = tuple([c[vars.index(v)] for v in vars_set])
-                    if not self.__check_for_covered_subsets(covered_cmp, list(vars_set),
-                                                         c_varset):  # smaller sets are also possible
-                        # if vars_set not in covered_cmp or c_varset not in covered_cmp[vars_set]:
-                        f_args = ""
-                        # vars in atom
-                        interpretation = ""
-                        for v in var:
-                            interpretation += f"r{self.__rule_counter}_{v}({c[vars.index(v)]}), " if v in self.__cur_var else f""
-                            f_args += f"{c[vars.index(v)]}," if v in self.__cur_var else f"{v},"
-
-                        if len(f_args) > 0:
-                            f_args = f"{f.name}({f_args[:-1]})"
-                        else:
-                            f_args = f"{f.name}"
-
-                        print(
-                            f"sat_r{self.__rule_counter} :- {interpretation}{'' if (self.__cur_func_sign[self.__cur_func.index(f)] or f is head) else 'not '}{f_args}.")
+            # Print rules (4) and (5)
+            self.__ensure_sat(head)
 
             # FOUND NEW
             if head is not None:
@@ -164,6 +79,7 @@ class NglpDlpTransformer(Transformer):
                        v not in h_vars]  # remaining variables not included in head atom (without facts)
 
                 # GUESS head
+                # Print rule (2)
                 if not self.__ground_guess:
                     print(f"{{{head}" + (
                         f" : {','.join(f'_dom_{v}({v})' if v in self.__subdoms else f'dom({v})' for v in h_vars)}}}." if h_args_len > 0 else "}."))
@@ -174,6 +90,7 @@ class NglpDlpTransformer(Transformer):
                         f"{head.name}({','.join(c[h_vars.index(a)] if a in h_vars else a for a in h_args)})" for c in
                         combinations]
                     print(f"{{{';'.join(h_interpretations)}}}." if h_args_len > 0 else f"{{{head.name}}}.")
+
                 g_r = {}
 
                 # path checking
@@ -227,7 +144,8 @@ class NglpDlpTransformer(Transformer):
                             elif len(g_r[r]) == 0:  # removed all
                                 print(f"1{{{rem_interpretations}}}1.")
                             else:  # removed some
-                                dom_list = [self.__subdoms[v] if v in self.__subdoms else self.__terms for v in mis_vars]
+                                dom_list = [self.__subdoms[v] if v in self.__subdoms else self.__terms for v in
+                                            mis_vars]
                                 combinations = [p for p in itertools.product(*dom_list)]
                                 h_interpretations = [
                                     f"{head.name}({','.join(c2[mis_vars.index(a)] if a in mis_vars else c[g_r[r].index(a)] for a in h_args)})"
@@ -257,7 +175,7 @@ class NglpDlpTransformer(Transformer):
                              for v in vars_set])
 
                         if not self.__check_for_covered_subsets(covered_cmp, list(vars_set),
-                                                             c_varset):  # smaller sets are also possible
+                                                                c_varset):  # smaller sets are also possible
                             # if c_varset not in covered_cmp[vars_set]:  # smaller sets are also possible
                             interpretation, interpretation_incomplete, combs_covered, index_vars = self.__generate_combination_information(
                                 h_args, f_vars_needed, c, head)
@@ -287,7 +205,8 @@ class NglpDlpTransformer(Transformer):
                                 print(unfound_atom + (
                                     f" :- {', '.join(f_rem_atoms)}" if len(f_rem_atoms) > 0 else "") + ".")
                                 # print (f"{h_args_len} | {combs_covered} | {index_vars}")
-                                self.__add_to_foundedness_check(head.name, h_args_len, combs_covered, self.__rule_counter,
+                                self.__add_to_foundedness_check(head.name, h_args_len, combs_covered,
+                                                                self.__rule_counter,
                                                                 index_vars)
 
                 # over every body-atom
@@ -306,7 +225,8 @@ class NglpDlpTransformer(Transformer):
 
                         vars_set = frozenset(f_vars_needed + f_rem)
 
-                        dom_list = [self.__subdoms[v] if v in self.__subdoms else self.__terms for v in f_vars_needed + f_rem]
+                        dom_list = [self.__subdoms[v] if v in self.__subdoms else self.__terms for v in
+                                    f_vars_needed + f_rem]
                         combs = [p for p in itertools.product(*dom_list)]
 
                         for c in combs:
@@ -315,7 +235,7 @@ class NglpDlpTransformer(Transformer):
                                     len(f_vars_needed) + f_rem.index(v)]
                                  for v in vars_set])
                             if not self.__check_for_covered_subsets(covered_cmp, list(vars_set),
-                                                                 c_varset):  # smaller sets are also possible
+                                                                    c_varset):  # smaller sets are also possible
                                 # if vars_set not in covered_cmp or c_varset not in covered_cmp[vars_set]:
                                 interpretation, interpretation_incomplete, combs_covered, index_vars = self.__generate_combination_information(
                                     h_args, f_vars_needed, c, head)
@@ -348,7 +268,8 @@ class NglpDlpTransformer(Transformer):
                                                      f"{', '.join([f_interpretation] + f_rem_atoms)}.")
 
                                 # predicate arity combinations rule indices
-                                self.__add_to_foundedness_check(head.name, h_args_len, combs_covered, self.__rule_counter,
+                                self.__add_to_foundedness_check(head.name, h_args_len, combs_covered,
+                                                                self.__rule_counter,
                                                                 index_vars)
 
         else:  # found-check for ground-rules (if needed) (pred, arity, combinations, rule, indices)
@@ -359,7 +280,8 @@ class NglpDlpTransformer(Transformer):
 
             # If such a head predicate with the given arity exists but there is no such fact
             if pred in self.__ng_heads and arity in self.__ng_heads[pred] \
-                    and not (pred in self.__facts and arity in self.__facts[pred] and arguments in self.__facts[pred][arity]):
+                    and not (
+                    pred in self.__facts and arity in self.__facts[pred] and arguments in self.__facts[pred][arity]):
 
                 for body_atom in node.body:
                     if str(body_atom).startswith("not "):
@@ -384,14 +306,15 @@ class NglpDlpTransformer(Transformer):
         :return: Node of the AST.
         """
         if str(node) != "#false":
-            if node.atom.ast_type is clingo.ast.ASTType.SymbolicAtom:  # comparisons are reversed by parsing, therefore always using not is sufficient
+            if node.atom.ast_type is clingo.ast.ASTType.SymbolicAtom:
+                # comparisons are reversed by parsing, therefore always using not is sufficient
                 self.__cur_func_sign.append(str(node).startswith("not "))
         self.visit_children(node)
         return node
 
     def visit_Function(self, node):
         """
-        Visits functions (or predicates) of the program and saves their names and arities.
+        Visits non-ground predicates of the program and saves their names and arities.
 
         :param node: Function node of the program.
         :return: Node of the AST.
@@ -456,6 +379,106 @@ class NglpDlpTransformer(Transformer):
         self.__cur_comp.append(node)
         self.visit_children(node)
         return node
+
+    def __guess_sat_saturate_assignments(self):
+        """
+        Prints rules (3) and (7) which are responsible for guessing and saturating assignments
+        of variables to domain values.
+        """
+        # MOD
+        # domaining per rule variable
+        # Print rule (3)
+        for v in self.__cur_var:  # variables
+            disjunction = ""
+            if v in self.__subdoms:
+                for t in self.__subdoms[v]:  # domain
+                    disjunction += f"r{self.__rule_counter}_{v}({t}) | "
+            else:
+                for t in self.__terms:  # domain
+                    disjunction += f"r{self.__rule_counter}_{v}({t}) | "
+            if len(disjunction) > 0:
+                disjunction = disjunction[:-3] + "."
+                print(disjunction)
+
+            # Print rule (7)
+            if v in self.__subdoms:
+                for t in self.__subdoms[v]:  # domain
+                    # r1_x(1) :- sat. r1_x(2) :- sat. ...
+                    print(f"r{self.__rule_counter}_{v}({t}) :- sat.")
+            else:
+                for t in self.__terms:  # domain
+                    # r1_x(1) :- sat. r1_x(2) :- sat. ...
+                    print(f"r{self.__rule_counter}_{v}({t}) :- sat.")
+
+    def __ensure_sat(self, head):
+        # SAT
+        # Print rule (4) and (5)
+        covered_cmp = {}  # reduce SAT rules when compare-operators are pre-checked
+        for f in self.__cur_comp:
+            arguments = [str(f.left), str(f.right)]  # all arguments (incl. duplicates / terms)
+            var = list(dict.fromkeys(arguments))  # arguments (without duplicates / incl. terms)
+            vars = list(dict.fromkeys(
+                [a for a in arguments if a in self.__cur_var]))  # which have to be grounded per combination
+
+            dom_list = [self.__subdoms[v] if v in self.__subdoms else self.__terms for v in vars]
+            combinations = [p for p in itertools.product(*dom_list)]
+
+            vars_set = frozenset(vars)
+            if vars_set not in covered_cmp:
+                covered_cmp[vars_set] = set()
+
+            for c in combinations:
+                c_varset = tuple([c[vars.index(v)] for v in vars_set])
+                if not self.__check_for_covered_subsets(covered_cmp, list(vars_set),
+                                                        c_varset):  # smaller sets are also possible
+                    # if c_varset not in covered_cmp[vars_set]:
+                    f_args = ""
+                    # vars in atom
+                    interpretation = ""
+                    for v in var:
+                        interpretation += f"r{self.__rule_counter}_{v}({c[vars.index(v)]}), " if v in self.__cur_var else f""
+                        f_args += f"{c[vars.index(v)]}," if v in self.__cur_var else f"{v},"
+                    c1 = int(c[vars.index(var[0])] if var[0] in vars else var[0])
+                    c2 = int(c[vars.index(var[1])] if var[1] in vars else var[1])
+                    if not self.__compare_terms(f.comparison, c1, c2):
+                        covered_cmp[vars_set].add(c_varset)
+                        print(f"sat_r{self.__rule_counter} :- {interpretation[:-2]}.")
+
+        for f in self.__cur_func:
+            args_len = len(f.arguments)
+            if args_len == 0:
+                print(
+                    f"sat_r{self.__rule_counter} :-{'' if (self.__cur_func_sign[self.__cur_func.index(f)] or f is head) else ' not'} {f}.")
+                continue
+            arguments = re.sub(r'^.*?\(', '', str(f))[:-1].split(',')  # all arguments (incl. duplicates / terms)
+            var = list(
+                dict.fromkeys(arguments)) if args_len > 0 else []  # arguments (without duplicates / incl. terms)
+            vars = list(dict.fromkeys([a for a in arguments if
+                                       a in self.__cur_var])) if args_len > 0 else []  # which have to be grounded per combination
+
+            dom_list = [self.__subdoms[v] if v in self.__subdoms else self.__terms for v in vars]
+            combinations = [p for p in itertools.product(*dom_list)]
+            vars_set = frozenset(vars)
+
+            for c in combinations:
+                c_varset = tuple([c[vars.index(v)] for v in vars_set])
+                if not self.__check_for_covered_subsets(covered_cmp, list(vars_set),
+                                                        c_varset):  # smaller sets are also possible
+                    # if vars_set not in covered_cmp or c_varset not in covered_cmp[vars_set]:
+                    f_args = ""
+                    # vars in atom
+                    interpretation = ""
+                    for v in var:
+                        interpretation += f"r{self.__rule_counter}_{v}({c[vars.index(v)]}), " if v in self.__cur_var else f""
+                        f_args += f"{c[vars.index(v)]}," if v in self.__cur_var else f"{v},"
+
+                    if len(f_args) > 0:
+                        f_args = f"{f.name}({f_args[:-1]})"
+                    else:
+                        f_args = f"{f.name}"
+
+                    print(
+                        f"sat_r{self.__rule_counter} :- {interpretation}{'' if (self.__cur_func_sign[self.__cur_func.index(f)] or f is head) else 'not '}{f_args}.")
 
     def __get_comp_operator(self, comp):
         """
@@ -614,39 +637,35 @@ class NglpDlpTransformer(Transformer):
                 else:
                     print(f"{str(node.head).replace(';', ',')}.")
 
-    def print_sat_and_foundedness_rules(self, bld):
+    def print_sat_rules(self, bld):
         if self.__rule_counter > 0:
-            self.__print_sat_rules(bld)
-            self.__print_foundedness_rules()
+            parse_string(":- not sat.", lambda stm: bld.add(stm))
+            # Prints rule (8)
+            print(":- not sat.")
+            # parse_string(f"sat :- {','.join([f'sat_r{i}' for i in range(1, transformer.counter+1)])}.",
+            # lambda stm: self.bld.add(stm))
 
+            # Prints rule (6)
+            print(f"sat :- {','.join([f'sat_r{i}' for i in range(1, self.__rule_counter + 1)])}.")
 
-    def __print_sat_rules(self, bld):
-        parse_string(":- not sat.", lambda stm: bld.add(stm))
-        # Prints rule (8)
-        print(":- not sat.")
-        # parse_string(f"sat :- {','.join([f'sat_r{i}' for i in range(1, transformer.counter+1)])}.",
-        # lambda stm: self.bld.add(stm))
-
-        # Prints rule (6)
-        print(f"sat :- {','.join([f'sat_r{i}' for i in range(1, self.__rule_counter + 1)])}.")
-
-    def __print_foundedness_rules(self):
-        for p in self.__f:
-            for arity in self.__f[p]:
-                for c in self.__f[p][arity]:
-                    rule_sets = []
-                    for r in self.__f[p][arity][c]:
-                        sum_sets = []
-                        for subset in self.__f[p][arity][c][r]:
-                            # print ([c[int(i)] for i in subset])
-                            sum_sets.append(
-                                f"1:r{r}_unfound{'_' + ''.join(subset) if len(subset) < arity else ''}"
-                                + (f"({','.join([c[int(i)] for i in subset])})"
-                                   if len(subset) > 0 else ""))
-                        sum_atom = f"#sum {{{'; '.join(sum_sets)}}} >= 1"
-                        rule_sets.append(sum_atom)
-                    head = ','.join(c)
-                    print(f":- {', '.join([f'{p}' + (f'({head})' if len(head) > 0 else '')] + rule_sets)}.")
+    def print_foundedness_rules(self):
+        if self.__rule_counter > 0:
+            for p in self.__f:
+                for arity in self.__f[p]:
+                    for c in self.__f[p][arity]:
+                        rule_sets = []
+                        for r in self.__f[p][arity][c]:
+                            sum_sets = []
+                            for subset in self.__f[p][arity][c][r]:
+                                # print ([c[int(i)] for i in subset])
+                                sum_sets.append(
+                                    f"1:r{r}_unfound{'_' + ''.join(subset) if len(subset) < arity else ''}"
+                                    + (f"({','.join([c[int(i)] for i in subset])})"
+                                       if len(subset) > 0 else ""))
+                            sum_atom = f"#sum {{{'; '.join(sum_sets)}}} >= 1"
+                            rule_sets.append(sum_atom)
+                        head = ','.join(c)
+                        print(f":- {', '.join([f'{p}' + (f'({head})' if len(head) > 0 else '')] + rule_sets)}.")
 
     def handle_ground_guess(self):
         if not self.__ground_guess:
