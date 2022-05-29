@@ -92,7 +92,6 @@ class NglpDlpTransformer(Transformer):
                     print(f"{{{';'.join(h_interpretations)}}}." if h_args_len > 0 else f"{{{head.name}}}.")
 
                 g_r = {}
-
                 # path checking
                 g = nx.Graph()
                 for f in self.__cur_func:
@@ -105,9 +104,11 @@ class NglpDlpTransformer(Transformer):
                             for v2 in f_vars:
                                 g.add_edge(v1, v2)
 
+                # Add an edge between comparison operands
                 for comp in self.__cur_comp:
                     g.add_edge(str(comp.left), str(comp.left))
 
+                # Print rule (9) after creating the variable graph
                 for r in rem:
                     g_r[r] = []
                     for n in nx.dfs_postorder_nodes(g, source=r):
@@ -411,6 +412,11 @@ class NglpDlpTransformer(Transformer):
                     print(f"r{self.__rule_counter}_{v}({t}) :- sat.")
 
     def __ensure_sat(self, head):
+        """
+        Prints rules (4) and (5) which are responsible for ensuring satisfiability.
+
+        :param head: Head of the rule.
+        """
         # SAT
         # Print rule (4) and (5)
         covered_cmp = {}  # reduce SAT rules when compare-operators are pre-checked
@@ -638,6 +644,10 @@ class NglpDlpTransformer(Transformer):
                     print(f"{str(node.head).replace(';', ',')}.")
 
     def print_sat_rules(self, bld):
+        """
+        Prints rules (6) and (8), which are responsible for checking if all rules
+        of the program are satisfiable.
+        """
         if self.__rule_counter > 0:
             parse_string(":- not sat.", lambda stm: bld.add(stm))
             # Prints rule (8)
@@ -648,7 +658,12 @@ class NglpDlpTransformer(Transformer):
             # Prints rule (6)
             print(f"sat :- {','.join([f'sat_r{i}' for i in range(1, self.__rule_counter + 1)])}.")
 
-    def print_foundedness_rules(self):
+    def prevent_unfoundedness(self):
+        """
+        Prints rule (17), which prevents unfounded results.
+
+        :return:
+        """
         if self.__rule_counter > 0:
             for p in self.__f:
                 for arity in self.__f[p]:
