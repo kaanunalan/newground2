@@ -1,4 +1,4 @@
-# newground
+# newground2
 Reduction of **non-ground** logic programs to **disjunctive** logic programs using body-decoupled grounding.
 
 ## Requirements
@@ -11,7 +11,7 @@ pip install -r requirements.txt
 ```
 
 ## Input Format
-The input format is equivalent to clingos input format. Currently the reduction of normal logic programs (including comparison operators) is implemented. 
+The input format is equivalent to clingos input format.
 
 Based on the principle of partial reducibility, inputs can be divided into parts that shall be part of the reduction. For this reason please use `#program rules.` for (non-ground) program parts that shall be reduced by **newground**. The subprogram `#program insts.` on the other hand can be used for instantiating the program.
 
@@ -19,8 +19,8 @@ Without explicit domains given the reduction uses the complete set of terms to f
 
 ## Usage
 ```
-$ python3 newground2 -h
-usage: newground2 file1 [file2 ...]
+$ python3 newground2.py -h
+usage: newground2.py file1 [file2 ...]
 
 positional arguments:
   file1 [file2 ...]
