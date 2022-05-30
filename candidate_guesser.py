@@ -4,7 +4,8 @@ import re
 
 class CandidateGuesser:
 
-    def guessCandidates(self, head, terms, subdoms, ground_guess, cur_var):
+    def guess_candidates(self, head, terms, subdoms, ground_guess, cur_var):
+        # TODO: Add doc and what does this method actually do?
         # head
         h_args_len = len(head.arguments)
         h_args = re.sub(r'^.*?\(', '', str(head))[:-1].split(',')  # all arguments (incl. duplicates / terms)

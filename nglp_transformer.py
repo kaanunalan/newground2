@@ -9,6 +9,7 @@ import clingo
 from clingo.ast import Transformer
 
 from candidate_guesser import CandidateGuesser
+from normal_program_handler import NormalProgramHandler
 from sat_ensurer import SatEnsurer
 from unfoundedness_preventer import UnfoundednessPreventer
 
@@ -181,7 +182,7 @@ class NglpDlpTransformer(Transformer):
             sat_ensurer.ensure_sat(head)
 
             if head is not None:
-                CandidateGuesser().guessCandidates(head, self.__terms, self.__subdoms, self.__ground_guess,
+                CandidateGuesser().guess_candidates(head, self.__terms, self.__subdoms, self.__ground_guess,
                                                    self.__cur_var)
 
                 unfoundedness_preventer = UnfoundednessPreventer(self.__terms, self.__facts, self.__subdoms,
@@ -190,6 +191,7 @@ class NglpDlpTransformer(Transformer):
                                                                  self.__cur_comp, self.__f, self.__rule_counter)
                 unfoundedness_preventer.prevent_unfoundedness(head)
 
+        # TODO: Check if this part can be moved to unfoundedness_preventer
         else:  # found-check for ground-rules (if needed) (pred, arity, combinations, rule, indices)
             head_pred = str(node.head).split('(', 1)[0]
             head_arguments_list = re.sub(r'^.*?\(', '', str(node.head))[:-1].split(',')
@@ -243,7 +245,6 @@ class NglpDlpTransformer(Transformer):
                         head = ','.join(c)
                         print(f":- {', '.join([f'{p}' + (f'({head})' if len(head) > 0 else '')] + rule_sets)}.")
 
-
     def handle_ground_guess(self):
         """
         If no --ground-guess, then this method uses and prints the complete set of terms as domain for all variables.
@@ -263,8 +264,11 @@ class NglpDlpTransformer(Transformer):
                 for l in self.__shows[f]:
                     print(f"#show {f}/{l}.")
 
-
-
+    def add_rules_for_normal_programs(self):
+        """
+        Adds rules for foundedness of normal programs.
+        """
+        NormalProgramHandler().add_rules_for_normal_programs()
 
     def __get_terms(self):
         return self.__terms
@@ -293,6 +297,7 @@ class NglpDlpTransformer(Transformer):
     def __get_g_counter(self):
         return self.__g_counter
 
+    # TODO: Remove the unnecessary getters
     terms = property(__get_terms)
     facts = property(__get_facts)
     ng_heads = property(__get_ng_heads)

@@ -140,6 +140,7 @@ class TermTransformer(Transformer):
     def __get_show(self):
         return self.__show
 
+    # TODO: Remove the unnecessary getters
     terms = property(__get_terms)
     subdoms = property(__get_subdoms)
     facts = property(__get_facts)

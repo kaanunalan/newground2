@@ -1,3 +1,4 @@
+# TODO: Add doc, smaller methods, less duplicates and dependencies
 import itertools
 import re
 
@@ -6,6 +7,7 @@ import networkx as nx
 
 
 class UnfoundednessPreventer:
+
     def __init__(self, terms, facts, subdoms, ground_guess, cur_var, cur_func, cur_func_sign, cur_comp, f, rule_counter):
         self.__terms = terms
         self.__facts = facts

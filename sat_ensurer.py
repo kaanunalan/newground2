@@ -56,11 +56,21 @@ class SatEnsurer:
         # SAT
         # Print rule (4) and (5)
         covered_cmp = {}  # reduce SAT rules when compare-operators are pre-checked
+        self.__ensure_sat_cmp(covered_cmp)
+        self.__ensure_sat_pred(head, covered_cmp)
+
+    def __ensure_sat_cmp(self, covered_cmp):
+        # TODO: What does this method actually do?
+        """
+        Prints rules (4) and (5) for comparison operators.
+
+        :param head: Head of the rule.
+        """
         for f in self.__cur_comp:
             arguments = [str(f.left), str(f.right)]  # all arguments (incl. duplicates / terms)
             var = list(dict.fromkeys(arguments))  # arguments (without duplicates / incl. terms)
             vars = list(dict.fromkeys(
-                 [a for a in arguments if a in self.__cur_var]))  # which have to be grounded per combination
+                [a for a in arguments if a in self.__cur_var]))  # which have to be grounded per combination
 
             dom_list = [self.__subdoms[v] if v in self.__subdoms else self.__terms for v in vars]
             combinations = [p for p in itertools.product(*dom_list)]
@@ -72,7 +82,7 @@ class SatEnsurer:
             for c in combinations:
                 c_varset = tuple([c[vars.index(v)] for v in vars_set])
                 if not self.__check_for_covered_subsets(covered_cmp, list(vars_set),
-                                                         c_varset):  # smaller sets are also possible
+                                                        c_varset):  # smaller sets are also possible
                     # if c_varset not in covered_cmp[vars_set]:
                     f_args = ""
                     # vars in atom
@@ -86,9 +96,8 @@ class SatEnsurer:
                         covered_cmp[vars_set].add(c_varset)
                         print(f"sat_r{self.__rule_counter} :- {interpretation[:-2]}.")
 
-            self.__ensure_sat_pred(head, covered_cmp)
-
     def __ensure_sat_pred(self, head, covered_cmp):
+        # TODO: What does this method actually do?
         """
         Prints rules (4) and (5) for normal predicates.
 
@@ -132,6 +141,7 @@ class SatEnsurer:
                         f"sat_r{self.__rule_counter} :- {interpretation}{'' if (self.__cur_func_sign[self.__cur_func.index(f)] or f is head) else 'not '}{f_args}.")
 
     def __check_for_covered_subsets(self, base, current, c_varset):
+        # TODO: This method is needed in more than one module.
         """
         Checks if subset is already covered
         :param base: Dictionary of covered tuple subsets for a given variable set.
@@ -147,6 +157,7 @@ class SatEnsurer:
         return False
 
     def __compare_terms(self, comp, c1, c2):
+        # TODO: This method is needed in more than one module.
         """
         Compares terms using the comparison opeator.
 

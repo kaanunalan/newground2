@@ -9,6 +9,8 @@ import os
 import pathlib
 import sys
 
+program_name = "newground2.py"
+
 parser = argparse.ArgumentParser(prog=sys.argv[0], usage="%(prog)s --input DIR_PATH --output DIR_PATH")
 parser.add_argument("--input", metavar="DIR_PATH", required=True,
                     help="Input directory where input files are placed.")
@@ -22,6 +24,6 @@ for path in pathlib.Path(args.input).iterdir():
     if path.is_file():
         options = ["", "--ground", "--ground-guess", "--no-show"]
         for option in options:
-            os.system("python main.py " + option + " " + path.__str__() + " > "
+            os.system("python " + program_name + " " + option + " " + path.__str__() + " > "
                       + args.output + "/" + option + "_" + os.path.basename(path))
 
