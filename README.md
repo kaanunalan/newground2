@@ -19,8 +19,8 @@ Without explicit domains given the reduction uses the complete set of terms to f
 
 ## Usage
 ```
-$ python3 newground -h
-usage: newground file1 [file2 ...]
+$ python3 newground2 -h
+usage: newground2 file1 [file2 ...]
 
 positional arguments:
   file1 [file2 ...]
