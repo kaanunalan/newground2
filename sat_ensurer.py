@@ -119,8 +119,6 @@ class SatEnsurer:
                     f"sat_r{self.__rule_counter} :-{'' if (self.__cur_func_sign[self.__cur_func.index(f)] or f is head) else ' not'} {f}.")
                 continue
             arguments = re.sub(r'^.*?\(', '', str(f))[:-1].split(',')  # all arguments (incl. duplicates / terms)
-            args_without_dup = list(
-                dict.fromkeys(arguments)) if args_len > 0 else []  # arguments (without duplicates / incl. terms)
             # Variables which have to be grounded per combination
             vars = list(dict.fromkeys([a for a in arguments if
                                        a in self.__cur_var])) if args_len > 0 else []
@@ -137,7 +135,7 @@ class SatEnsurer:
                     f_args = ""
                     # vars in atom
                     interpretation = ""
-                    for v in args_without_dup:
+                    for v in arguments:
                         interpretation += f"r{self.__rule_counter}_{v}({c[vars.index(v)]}), " if v in self.__cur_var else f""
                         f_args += f"{c[vars.index(v)]}," if v in self.__cur_var else f"{v},"
 
