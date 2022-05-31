@@ -66,6 +66,7 @@ class TermTransformer(Transformer):
         :return: Node of the AST.
         """
         self.__current_f = str(node).split("(", 1)[0] if len(node.arguments) > 0 else node
+        print("current_f: " + str(self.__current_f))
         # shows
         # if not str(node.name).startswith('_dom_'):
         if node.name in self.__shows:
@@ -137,13 +138,8 @@ class TermTransformer(Transformer):
     def __get_shows(self):
         return self.__shows
 
-    def __get_show(self):
-        return self.__show
-
-    # TODO: Remove the unnecessary getters
     terms = property(__get_terms)
     subdoms = property(__get_subdoms)
     facts = property(__get_facts)
     ng_heads = property(__get_ng_heads)
     shows = property(__get_shows)
-    show = property(__get_show)
