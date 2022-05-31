@@ -18,7 +18,7 @@ class NglpDlpTransformer(Transformer):
     def __init__(self, bld, terms, facts, ng_heads, shows, subdoms, ground_guess, ground):
         self.__bld = bld  # Object to build non-ground programs
         self.__terms = terms  # Terms occurring in the program, e.g., ['1', '2']
-        self.__facts = facts  # Facts, arities and arguments
+        self.__facts = facts  # Facts, arities and arguments, e.g., {'_dom_X': {1: {'1'}}, '_dom_Y': {1: {'(1..2)'}}}
         self.__ng_heads = ng_heads  # Rule heads with their arities, e.g., {'d': {1}, 'a': {2}}
         self.__shows = shows  # Predicates (and functions) with their arities, e.g., {'a': {2}, 'f': {1}}
         self.__subdoms = subdoms  # Domains of each variable separately, e.g.,  {'Y': ['1', '2'], 'Z': ['1', '2']}
@@ -48,6 +48,12 @@ class NglpDlpTransformer(Transformer):
         self.__ng = False
 
     def visit_Rule(self, node):
+        """
+        Visits rules of the program, collects information about the rules and prints the rules
+        that are printed for each rule separately.
+        :param node: Rule in the program.
+        :return: Node of the AST.
+        """
         # if not part of #program rules
         if not self.__rules:
             self.__reset_after_rule()
@@ -59,7 +65,7 @@ class NglpDlpTransformer(Transformer):
         self.visit_children(node)
 
         # if so: handle grounding
-        self.__handle_grounding(node)
+        self.__handle_rule_grounding(node)
         self.__reset_after_rule()
         return node
 
@@ -79,7 +85,7 @@ class NglpDlpTransformer(Transformer):
 
     def visit_Function(self, node):
         """
-        Visits non-ground predicates of the program and saves their names and arities.
+        Visits predicates (and functions) of the program and saves their names and arities.
 
         :param node: Function node of the program.
         :return: Node of the AST.
@@ -109,9 +115,6 @@ class NglpDlpTransformer(Transformer):
                 node = node.update(name=f"Anon{self.__cur_anon}")
                 self.__cur_anon += 1
             self.__cur_var.append(str(node))
-        return node
-
-    def visit_SymbolicTerm(self, node):
         return node
 
     def visit_Program(self, node):
@@ -165,7 +168,12 @@ class NglpDlpTransformer(Transformer):
                 else:
                     print(f"{str(node.head).replace(';', ',')}.")
 
-    def __handle_grounding(self, node):
+    def __handle_rule_grounding(self, node):
+        """
+        Uses rules of the program, collects information about the rules and prints the rules
+        that are printed for each rule separately.
+        :param node: Rule in the program.
+        """
         if self.__ng:
             self.__rule_counter += 1
             if str(node.head) != "#false":
@@ -215,8 +223,6 @@ class NglpDlpTransformer(Transformer):
             # print rule as it is
             self.__output_node_format_conform(node)
 
-        self.__reset_after_rule()
-        return node
 
     def check_if_all_sat(self, bld):
         SatEnsurer(self.__rule_counter).check_if_all_sat(bld)
@@ -224,8 +230,6 @@ class NglpDlpTransformer(Transformer):
     def prevent_unfounded_rules(self):
         """
         Prints rule (17), which prevents unfounded results.
-
-        :return:
         """
         if self.__rule_counter > 0:
             for p in self.__f:
@@ -276,6 +280,9 @@ class NglpDlpTransformer(Transformer):
     def __get_facts(self):
         return self.__facts
 
+    def __get_shows(self):
+        return self.__shows
+
     def __get_ng_heads(self):
         return self.__ng_heads
 
@@ -300,6 +307,7 @@ class NglpDlpTransformer(Transformer):
     # TODO: Remove the unnecessary getters
     terms = property(__get_terms)
     facts = property(__get_facts)
+    shows = property(__get_shows)
     ng_heads = property(__get_ng_heads)
     cur_anon = property(__get_cur_anon)
     cur_var = property(__get_cur_var)
