@@ -1,21 +1,31 @@
+"""
+This module ensures satisfiability.
+"""
+
 import itertools
 import re
 
-import clingo
 from clingo.ast import parse_string
+
+from comparison_precompiling_utils import ComparisonPrecompilingUtils
 
 
 class SatEnsurer:
-    def __init__(self, rule_counter, terms=None, subdoms=None, cur_var=None, cur_func=None, cur_func_sign=None, cur_comp=None):
-        if cur_func_sign is None:
-            cur_func_sign = []
-        self.__terms = terms  # Terms occurring in the program, e.g., ['1', '2']
-        self.__subdoms = subdoms  # Domains of each variable separately, e.g.,  {'Y': ['1', '2'], 'Z': ['1', '2']}
-        self.__cur_var = cur_var
-        self.__cur_func = cur_func
-        self.__cur_func_sign = cur_func_sign  # Boolean list for signs of literals ('True' for negative literal)
-        self.__cur_comp = cur_comp
-        self.__rule_counter = rule_counter
+    def __init__(self, rule_counter, terms=None, subdoms=None, cur_var=None, cur_func=None, cur_func_sign=None,
+                 cur_comp=None):
+        # Terms occurring in the program, e.g., ['1', '2']
+        self.__terms = terms if terms is not None else []
+        # Domains of each variable separately, e.g.,  {'Y': ['1', '2'], 'Z': ['1', '2']}
+        self.__subdoms = subdoms if subdoms is not None else {}
+        # List of variables occuring in the rule, e.g., ['X', 'Y', 'Z']
+        self.__cur_var = cur_var if cur_var is not None else []
+        # List of current predicates (and functions)
+        self.__cur_func = cur_func if cur_func is not None else []
+        # Boolean list for signs of literals ('True' for negative literal)
+        self.__cur_func_sign = cur_func_sign if cur_func_sign is not None else []
+        # List of comparison operations occurring in the rule
+        self.__cur_comp = cur_comp if cur_comp is not None else []  # List of comparison operations occurring in the rule
+        self.__rule_counter = rule_counter  # Counts rules in the program
 
     def guess_sat_saturate_assignments(self):
         """
@@ -60,44 +70,43 @@ class SatEnsurer:
         self.__ensure_sat_pred(head, covered_cmp)
 
     def __ensure_sat_cmp(self, covered_cmp):
-        # TODO: What does this method actually do?
         """
-        Prints rules (4) and (5) for comparison operators.
+        Prints rules (4) and (5) for comparison operators in order to achieve more compact programs.
 
-        :param head: Head of the rule.
+        :param covered_cmp: Dictionary of covered tuple subsets (combinations) for a given variable set.
         """
         for f in self.__cur_comp:
             arguments = [str(f.left), str(f.right)]  # all arguments (incl. duplicates / terms)
-            var = list(dict.fromkeys(arguments))  # arguments (without duplicates / incl. terms)
+            args_without_dup = list(dict.fromkeys(arguments))  # arguments (without duplicates / incl. terms)
             vars = list(dict.fromkeys(
                 [a for a in arguments if a in self.__cur_var]))  # which have to be grounded per combination
 
             dom_list = [self.__subdoms[v] if v in self.__subdoms else self.__terms for v in vars]
+            # All possible combinations with domains of variables
             combinations = [p for p in itertools.product(*dom_list)]
 
             vars_set = frozenset(vars)
             if vars_set not in covered_cmp:
-                covered_cmp[vars_set] = set()
+                covered_cmp[vars_set] = set()  # Add set of operands to list of covered comparisons
 
             for c in combinations:
                 c_varset = tuple([c[vars.index(v)] for v in vars_set])
-                if not self.__check_for_covered_subsets(covered_cmp, list(vars_set),
-                                                        c_varset):  # smaller sets are also possible
+                # smaller sets are also possible
+                if not ComparisonPrecompilingUtils.check_for_covered_subsets(covered_cmp, list(vars_set), c_varset):
                     # if c_varset not in covered_cmp[vars_set]:
                     f_args = ""
                     # vars in atom
                     interpretation = ""
-                    for v in var:
+                    for v in args_without_dup:
                         interpretation += f"r{self.__rule_counter}_{v}({c[vars.index(v)]}), " if v in self.__cur_var else f""
                         f_args += f"{c[vars.index(v)]}," if v in self.__cur_var else f"{v},"
-                    c1 = int(c[vars.index(var[0])] if var[0] in vars else var[0])
-                    c2 = int(c[vars.index(var[1])] if var[1] in vars else var[1])
-                    if not self.__compare_terms(f.comparison, c1, c2):
+                    c1 = int(c[vars.index(args_without_dup[0])] if args_without_dup[0] in vars else args_without_dup[0])
+                    c2 = int(c[vars.index(args_without_dup[1])] if args_without_dup[1] in vars else args_without_dup[1])
+                    if not ComparisonPrecompilingUtils.compare_terms(f.comparison, c1, c2):
                         covered_cmp[vars_set].add(c_varset)
                         print(f"sat_r{self.__rule_counter} :- {interpretation[:-2]}.")
 
     def __ensure_sat_pred(self, head, covered_cmp):
-        # TODO: What does this method actually do?
         """
         Prints rules (4) and (5) for normal predicates.
 
@@ -122,8 +131,8 @@ class SatEnsurer:
 
             for c in combinations:
                 c_varset = tuple([c[vars.index(v)] for v in vars_set])
-                if not self.__check_for_covered_subsets(covered_cmp, list(vars_set),
-                                                        c_varset):  # smaller sets are also possible
+                # smaller sets are also possible
+                if not ComparisonPrecompilingUtils.check_for_covered_subsets(covered_cmp, list(vars_set), c_varset):
                     # if vars_set not in covered_cmp or c_varset not in covered_cmp[vars_set]:
                     f_args = ""
                     # vars in atom
@@ -139,47 +148,6 @@ class SatEnsurer:
 
                     print(
                         f"sat_r{self.__rule_counter} :- {interpretation}{'' if (self.__cur_func_sign[self.__cur_func.index(f)] or f is head) else 'not '}{f_args}.")
-
-    def __check_for_covered_subsets(self, base, current, c_varset):
-        # TODO: This method is needed in more than one module.
-        """
-        Checks if subset is already covered
-        :param base: Dictionary of covered tuple subsets for a given variable set.
-        :param current: List of given variables.
-        :param c_varset: Tuple subset.
-        :return: 'True' if subset is already covered, 'False' otherwise.
-        """
-        for key in base:
-            if key.issubset(current):
-                c = tuple([c_varset[current.index(p)] for p in list(key)])
-                if c in base[key]:
-                    return True
-        return False
-
-    def __compare_terms(self, comp, c1, c2):
-        # TODO: This method is needed in more than one module.
-        """
-        Compares terms using the comparison opeator.
-
-        :param comp: Given comparison operator.
-        :param c1: First operand.
-        :param c2: Second operand.
-        :return: 'True' if comparison is true, 'False' otherwise.
-        """
-        if comp is int(clingo.ast.ComparisonOperator.Equal):
-            return c1 == c2
-        elif comp is int(clingo.ast.ComparisonOperator.NotEqual):
-            return c1 != c2
-        elif comp is int(clingo.ast.ComparisonOperator.GreaterEqual):
-            return c1 >= c2
-        elif comp is int(clingo.ast.ComparisonOperator.GreaterThan):
-            return c1 > c2
-        elif comp is int(clingo.ast.ComparisonOperator.LessEqual):
-            return c1 <= c2
-        elif comp is int(clingo.ast.ComparisonOperator.LessThan):
-            return c1 < c2
-        else:
-            assert (False)  # not implemented
 
     def check_if_all_sat(self, bld):
         """
