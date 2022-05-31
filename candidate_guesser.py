@@ -1,20 +1,27 @@
+"""
+This module guesses answer set candidates.
+"""
+
 import itertools
 import re
 
 
 class CandidateGuesser:
-
     def guess_candidates(self, head, terms, subdoms, ground_guess, cur_var):
-        # TODO: Add doc and what does this method actually do?
+        """
+        Prints rule (2), which is responsible for guessing answer set candidates.
+
+        :param head: Head of the rule.
+        :param terms: Terms occurring in the program, e.g., ['1', '2'].
+        :param subdoms: Domains of each variable separately, e.g.,  {'Y': ['1', '2'], 'Z': ['1', '2']}.
+        :param ground_guess: --ground-guess
+        :param cur_var: List of variables occurring in the rule, e.g., ['X', 'Y', 'Z'].
+        """
         # head
         h_args_len = len(head.arguments)
         h_args = re.sub(r'^.*?\(', '', str(head))[:-1].split(',')  # all arguments (incl. duplicates / terms)
-        h_args_nd = list(dict.fromkeys(h_args))  # arguments (without duplicates / incl. terms)
         h_vars = list(dict.fromkeys(
             [a for a in h_args if a in cur_var]))  # which have to be grounded per combination
-
-        rem = [v for v in cur_var if
-               v not in h_vars]  # remaining variables not included in head atom (without facts)
 
         # GUESS head
         # Print rule (2)
