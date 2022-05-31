@@ -66,7 +66,6 @@ class TermTransformer(Transformer):
         :return: Node of the AST.
         """
         self.__current_f = str(node).split("(", 1)[0] if len(node.arguments) > 0 else node
-        print("current_f: " + str(self.__current_f))
         # shows
         # if not str(node.name).startswith('_dom_'):
         if node.name in self.__shows:
