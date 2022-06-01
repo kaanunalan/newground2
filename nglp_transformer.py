@@ -3,8 +3,6 @@ This module reduces a (non-ground) logic program into a disjunctive logic progra
 body-decoupled grounding.
 """
 
-import re
-
 import clingo
 from clingo.ast import Transformer
 
@@ -28,13 +26,13 @@ class NglpDlpTransformer(Transformer):
         self.__rules = False  # If this is rule is under #program rules (reduction applied)
         self.__ng = False  # If the program is non-ground
         self.__cur_anon = 0  # Number of anonymous variables in a rule
-        self.__cur_var = []
-        self.__cur_func = []
+        self.__cur_var = []  # List of variables occurring in the rule, e.g., ['X', 'Y', 'Z']
+        self.__cur_func = []  # List of current predicates (and functions)
         self.__cur_func_sign = []  # Boolean list for signs of literals
-        self.__cur_comp = []
+        self.__cur_comp = []  # List of comparison operations occurring in the rule
         self.__f = {}
-        self.__rule_counter = 0  # Counts rules in the program
-        self.__g_counter = "A"
+        self.__rule_counter = 0  # Counts the rules in the program
+        self.__g_counter = "A"  # Counts the ground rules that are checked for unfoundedness
 
     def __reset_after_rule(self):
         """
@@ -174,6 +172,10 @@ class NglpDlpTransformer(Transformer):
         that are printed for each rule separately.
         :param node: Rule in the program.
         """
+        unfoundedness_preventer = UnfoundednessPreventer(self.__terms, self.__facts, self.__subdoms,
+                                                         self.__ground_guess,
+                                                         self.__cur_var, self.__cur_func, self.__cur_func_sign,
+                                                         self.__cur_comp, self.__f)
         if self.__ng:
             self.__rule_counter += 1
             if str(node.head) != "#false":
@@ -193,61 +195,23 @@ class NglpDlpTransformer(Transformer):
                 CandidateGuesser().guess_candidates(head, self.__terms, self.__subdoms, self.__ground_guess,
                                                    self.__cur_var)
 
-                unfoundedness_preventer = UnfoundednessPreventer(self.__terms, self.__facts, self.__subdoms,
-                                                                 self.__ground_guess,
-                                                                 self.__cur_var, self.__cur_func, self.__cur_func_sign,
-                                                                 self.__cur_comp, self.__f, self.__rule_counter)
-                unfoundedness_preventer.prevent_unfoundedness(head)
-
-        # TODO: Check if this part can be moved to unfoundedness_preventer
-        else:  # found-check for ground-rules (if needed) (pred, arity, combinations, rule, indices)
-            head_pred = str(node.head).split('(', 1)[0]
-            head_arguments_list = re.sub(r'^.*?\(', '', str(node.head))[:-1].split(',')
-            arity = len(head_arguments_list)
-            head_arguments = ','.join(head_arguments_list)
-
-            # If such a head predicate with the given arity exists but there is no such fact
-            if head_pred in self.__ng_heads and arity in self.__ng_heads[head_pred] \
-                    and not (head_pred in self.__facts and arity in self.__facts[head_pred]
-                             and head_arguments in self.__facts[head_pred][arity]):
-                for body_atom in node.body:
-                    if str(body_atom).startswith("not "):
-                        neg = ""
-                    else:
-                        neg = "not "
-                    print(f"r{self.__g_counter}_unfound({head_arguments}) :- "
-                          + f"{neg + str(body_atom)}.")
-
-                self.__g_counter = chr(ord(self.__g_counter) + 1)
-
+                unfoundedness_preventer.prevent_unfoundedness(head, self.__rule_counter)
+        else:
+            # found-check for ground-rules (if needed) (pred, arity, combinations, rule, indices)
+            self.__g_counter = unfoundedness_preventer.check_found_ground_rules(node, self.__ng_heads, self.__g_counter)
             # print rule as it is
             self.__output_node_format_conform(node)
-
 
     def check_if_all_sat(self, bld):
         SatEnsurer(self.__rule_counter).check_if_all_sat(bld)
 
     def prevent_unfounded_rules(self):
-        """
-        Prints rule (17), which prevents unfounded results.
-        """
-        if self.__rule_counter > 0:
-            for p in self.__f:
-                for arity in self.__f[p]:
-                    for c in self.__f[p][arity]:
-                        rule_sets = []
-                        for r in self.__f[p][arity][c]:
-                            sum_sets = []
-                            for subset in self.__f[p][arity][c][r]:
-                                # print ([c[int(i)] for i in subset])
-                                sum_sets.append(
-                                    f"1:r{r}_unfound{'_' + ''.join(subset) if len(subset) < arity else ''}"
-                                    + (f"({','.join([c[int(i)] for i in subset])})"
-                                       if len(subset) > 0 else ""))
-                            sum_atom = f"#sum {{{'; '.join(sum_sets)}}} >= 1"
-                            rule_sets.append(sum_atom)
-                        head = ','.join(c)
-                        print(f":- {', '.join([f'{p}' + (f'({head})' if len(head) > 0 else '')] + rule_sets)}.")
+
+        unfoundedness_preventer = UnfoundednessPreventer(self.__terms, self.__facts, self.__subdoms,
+                                                         self.__ground_guess,
+                                                         self.__cur_var, self.__cur_func, self.__cur_func_sign,
+                                                         self.__cur_comp, self.__f)
+        unfoundedness_preventer.prevent_unfounded_rules(self.__rule_counter)
 
     def handle_ground_guess(self):
         """

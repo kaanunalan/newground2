@@ -1,27 +1,34 @@
-# TODO: Add doc, smaller methods, less duplicates and dependencies
+"""
+This module prevents unfoundedness.
+"""
+
 import itertools
 import re
 
-import clingo.ast
 import networkx as nx
+
+from comparison_precompiling_utils import ComparisonPrecompilingUtils
 
 
 class UnfoundednessPreventer:
-
-    def __init__(self, terms, facts, subdoms, ground_guess, cur_var, cur_func, cur_func_sign, cur_comp, f, rule_counter):
-        self.__terms = terms
-        self.__facts = facts
-        self.__subdoms = subdoms
-        self.__ground_guess = ground_guess
-        self.__cur_var = cur_var
-        self.__cur_func = cur_func
+    def __init__(self, terms, facts, subdoms, ground_guess, cur_var, cur_func, cur_func_sign, cur_comp, f):
+        self.__terms = terms  # Terms occurring in the program, e.g., ['1', '2']
+        self.__facts = facts  # Facts, arities and arguments, e.g., {'_dom_X': {1: {'1'}}, '_dom_Y': {1: {'(1..2)'}}}
+        self.__subdoms = subdoms  # Domains of each variable separately, e.g.,  {'Y': ['1', '2'], 'Z': ['1', '2']}
+        self.__ground_guess = ground_guess  # --ground-guess
+        self.__cur_var = cur_var  # List of variables occurring in the rule, e.g., ['X', 'Y', 'Z']
+        self.__cur_func = cur_func  # List of current predicates (and functions)
         self.__cur_func_sign = cur_func_sign  # Boolean list for signs of literals
-        self.__cur_comp = cur_comp
+        self.__cur_comp = cur_comp  # List of comparison operations occurring in the rule
         self.__f = f
-        self.__rule_counter = rule_counter
 
-    def prevent_unfoundedness(self, head):
-        # TODO: Duplicate
+    def prevent_unfoundedness(self, head, rule_counter):
+        """
+        Prints rules (9), (15) and (16) to prevent unfoundedness.
+
+        :param head: Head of the rule.
+        :param rule_counter: # Counts the rules in the program.
+        """
         # head
         h_args_len = len(head.arguments)
         h_args = re.sub(r'^.*?\(', '', str(head))[:-1].split(',')  # all arguments (incl. duplicates / terms)
@@ -32,7 +39,11 @@ class UnfoundednessPreventer:
         rem = [v for v in self.__cur_var if
                v not in h_vars]  # remaining variables not included in head atom (without facts)
 
+        # dictionary that maps variables in the variable graph that do not occur in the head to variables in the head
+        # if there is an edge between these two variables in the variable graph (reachable variables),
+        # e.g., {'Z': ['Y']}
         g_r = {}
+
         # path checking
         g = nx.Graph()
         for f in self.__cur_func:
@@ -49,7 +60,7 @@ class UnfoundednessPreventer:
         for comp in self.__cur_comp:
             g.add_edge(str(comp.left), str(comp.left))
 
-        # Print rule (9) after creating the variable graph
+        # Print rule (9) after determining the dependent variables
         for r in rem:
             g_r[r] = []
             for n in nx.dfs_postorder_nodes(g, source=r):
@@ -66,18 +77,18 @@ class UnfoundednessPreventer:
                     doms = ','.join(f'dom({v})' for v in h_vars if v not in g_r[r])
                     if len(h_vars) == len(g_r[r]):  # removed none
                         print(
-                            f"1<={{r{self.__rule_counter}f_{r}({rem_interpretation}): dom({r})}}<=1 :- {head_interpretation}.")
+                            f"1<={{r{rule_counter}f_{r}({rem_interpretation}): dom({r})}}<=1 :- {head_interpretation}.")
                     elif len(g_r[r]) == 0:  # removed all
-                        print(f"1<={{r{self.__rule_counter}f_{r}({rem_interpretation}): dom({r})}}<=1.")
+                        print(f"1<={{r{rule_counter}f_{r}({rem_interpretation}): dom({r})}}<=1.")
                     else:  # removed some
                         print(
-                            f"1<={{r{self.__rule_counter}f_{r}({rem_interpretation}): dom({r})}}<=1 :- {head_interpretation}, {doms}.")
+                            f"1<={{r{rule_counter}f_{r}({rem_interpretation}): dom({r})}}<=1 :- {head_interpretation}, {doms}.")
                 else:
                     head_interpretation = f"{head.name}" + (
                         f"({','.join([c[g_r[r].index(a)] if a in g_r[r] else a for a in h_args])})" if h_args_len > 0 else "")
                     rem_interpretation = ','.join([c[g_r[r].index(v)] for v in h_args_nd if v in g_r[r]])
                     rem_interpretations = ';'.join(
-                        [f"r{self.__rule_counter}f_{r}({v}{',' + rem_interpretation if h_args_len > 0 else ''})"
+                        [f"r{rule_counter}f_{r}({v}{',' + rem_interpretation if h_args_len > 0 else ''})"
                          for v
                          in (self.__subdoms[r] if r in self.__subdoms else self.__terms)])
                     mis_vars = [v for v in h_vars if v not in g_r[r]]
@@ -95,7 +106,11 @@ class UnfoundednessPreventer:
                         for hi in h_interpretations:
                             print(f"1{{{rem_interpretations}}}1 :- {hi}.")
 
-        covered_cmp = {}
+        covered_cmp = {}  # Compare-operators are pre-checked
+        self.__derive_unjustifiability_comp(covered_cmp, head, h_args, h_vars, h_args_len, rem, g, g_r, rule_counter)
+        self.__derive_unjustifiability_pred(covered_cmp, head, h_args, h_vars, h_args_len, rem, g, g_r, rule_counter)
+
+    def __derive_unjustifiability_comp(self, covered_cmp, head, h_args, h_vars, h_args_len, rem, g, g_r, rule_counter):
         # for every cmp operator
         for f in self.__cur_comp:
             f_args = [str(f.left), str(f.right)]  # all arguments (incl. duplicates / terms)
@@ -116,8 +131,8 @@ class UnfoundednessPreventer:
                     [c[f_vars_needed.index(v)] if v in f_vars_needed else c[len(f_vars_needed) + f_rem.index(v)]
                      for v in vars_set])
 
-                if not self.__check_for_covered_subsets(covered_cmp, list(vars_set),
-                                                        c_varset):  # smaller sets are also possible
+                if not ComparisonPrecompilingUtils.check_for_covered_subsets(covered_cmp, list(vars_set),
+                                                                             c_varset):  # smaller sets are also possible
                     # if c_varset not in covered_cmp[vars_set]:  # smaller sets are also possible
                     interpretation, interpretation_incomplete, combs_covered, index_vars = self.__generate_combination_information(
                         h_args, f_vars_needed, c, head)
@@ -133,14 +148,14 @@ class UnfoundednessPreventer:
                         f"{f_args[1]}" if f_args[
                                               1] in self.__terms else f"{c[len(f_vars_needed) + f_rem.index(f_args[1])]}")
 
-                    if not self.__compare_terms(f.comparison, f_args_unf_left, f_args_unf_right):
+                    if not ComparisonPrecompilingUtils.compare_terms(f.comparison, f_args_unf_left, f_args_unf_right):
                         f_rem_atoms = [
-                            f"r{self.__rule_counter}f_{v}({','.join([c[len(f_vars_needed) + f_rem.index(v)]] + [i for id, i in enumerate(interpretation) if h_args[id] in g_r[v]])})"
+                            f"r{rule_counter}f_{v}({','.join([c[len(f_vars_needed) + f_rem.index(v)]] + [i for id, i in enumerate(interpretation) if h_args[id] in g_r[v]])})"
                             for v in f_args_nd if v in rem]
 
                         covered_cmp[vars_set].add(c_varset)
 
-                        unfound_atom = f"r{self.__rule_counter}_unfound" + (
+                        unfound_atom = f"r{rule_counter}_unfound" + (
                             f"_{''.join(index_vars)}" if len(f_vars_needed) < len(h_vars) else "") + (
                                            f"({','.join(interpretation_incomplete)})" if len(
                                                interpretation_incomplete) > 0 else "")
@@ -148,9 +163,9 @@ class UnfoundednessPreventer:
                             f" :- {', '.join(f_rem_atoms)}" if len(f_rem_atoms) > 0 else "") + ".")
                         # print (f"{h_args_len} | {combs_covered} | {index_vars}")
                         self.__add_to_foundedness_check(head.name, h_args_len, combs_covered,
-                                                        self.__rule_counter,
-                                                        index_vars)
+                                                        rule_counter, index_vars)
 
+    def __derive_unjustifiability_pred(self, covered_cmp, head, h_args, h_vars, h_args_len, rem, g, g_r, rule_counter):
         # over every body-atom
         for f in self.__cur_func:
             if f != head:
@@ -176,8 +191,8 @@ class UnfoundednessPreventer:
                         [c[f_vars_needed.index(v)] if v in f_vars_needed else c[
                             len(f_vars_needed) + f_rem.index(v)]
                          for v in vars_set])
-                    if not self.__check_for_covered_subsets(covered_cmp, list(vars_set),
-                                                            c_varset):  # smaller sets are also possible
+                    if not ComparisonPrecompilingUtils.check_for_covered_subsets(covered_cmp, list(vars_set),
+                                                                                 c_varset):  # smaller sets are also possible
                         # if vars_set not in covered_cmp or c_varset not in covered_cmp[vars_set]:
                         interpretation, interpretation_incomplete, combs_covered, index_vars = self.__generate_combination_information(
                             h_args, f_vars_needed, c, head)
@@ -196,13 +211,13 @@ class UnfoundednessPreventer:
                             f_interpretation = f"{f.name}"
 
                         f_rem_atoms = [
-                            f"r{self.__rule_counter}f_{v}({','.join([c[len(f_vars_needed) + f_rem.index(v)]] + [i for id, i in enumerate(interpretation) if h_args[id] in g_r[v]])})"
+                            f"r{rule_counter}f_{v}({','.join([c[len(f_vars_needed) + f_rem.index(v)]] + [i for id, i in enumerate(interpretation) if h_args[id] in g_r[v]])})"
                             for v in f_args_nd if v in rem]
 
                         f_interpretation = ('' if self.__cur_func_sign[
-                            self.__cur_func.index(f)] else 'not ') + f_interpretation
+                            self.__cur_func.index(f)] else "not ") + f_interpretation
                         # r1_unfound(V1,V2) :- p(V1,V2), not f(Z), r1_Z(Z,V1,V2).
-                        unfound_atom = f"r{self.__rule_counter}_unfound" + (
+                        unfound_atom = f"r{rule_counter}_unfound" + (
                             f"_{''.join(index_vars)}" if len(f_vars_needed) < len(h_vars) else "") + (
                                            f"({','.join(interpretation_incomplete)})" if len(
                                                interpretation_incomplete) > 0 else "")
@@ -211,23 +226,7 @@ class UnfoundednessPreventer:
 
                         # predicate arity combinations rule indices
                         self.__add_to_foundedness_check(head.name, h_args_len, combs_covered,
-                                                        self.__rule_counter,
-                                                        index_vars)
-
-    def __check_for_covered_subsets(self, base, current, c_varset):
-        """
-         Checks if subset is already covered
-         :param base: Dictionary of covered tuple subsets for a given variable set.
-         :param current: List of given variables.
-         :param c_varset: Tuple subset.
-         :return: 'True' if subset is already covered, 'False' otherwise.
-         """
-        for key in base:
-            if key.issubset(current):
-                c = tuple([c_varset[current.index(p)] for p in list(key)])
-                if c in base[key]:
-                    return True
-        return False
+                                                        rule_counter, index_vars)
 
     def __add_to_foundedness_check(self, pred, arity, combinations, rule, indices):
         indices = tuple(indices)
@@ -258,30 +257,6 @@ class UnfoundednessPreventer:
                 if n in h_vars and n not in f_vars_needed:
                     f_vars_needed.append(n)
         return f_vars_needed
-
-    def __compare_terms(self, comp, c1, c2):
-        """
-         Compares terms using the comparison opeator.
-
-         :param comp: Given comparison operator.
-         :param c1: First operand.
-         :param c2: Second operand.
-         :return: 'True' if comparison is true, 'False' otherwise.
-         """
-        if comp is int(clingo.ast.ComparisonOperator.Equal):
-            return c1 == c2
-        elif comp is int(clingo.ast.ComparisonOperator.NotEqual):
-            return c1 != c2
-        elif comp is int(clingo.ast.ComparisonOperator.GreaterEqual):
-            return c1 >= c2
-        elif comp is int(clingo.ast.ComparisonOperator.GreaterThan):
-            return c1 > c2
-        elif comp is int(clingo.ast.ComparisonOperator.LessEqual):
-            return c1 <= c2
-        elif comp is int(clingo.ast.ComparisonOperator.LessThan):
-            return c1 < c2
-        else:
-            assert (False)  # not implemented
 
     def __generate_combination_information(self, h_args, f_vars_needed, c, head):
         interpretation = []  # interpretation-list
@@ -328,3 +303,55 @@ class UnfoundednessPreventer:
         index_vars = [str(h_args.index(v)) for v in h_args if v in f_vars_needed or v in self.__terms]
 
         return interpretation, interpretation_incomplete, combs_covered, index_vars
+
+    def check_found_ground_rules(self, node, ng_heads, g_counter):
+        """
+        Checks foundedness of ground rules if needed
+
+        :param node: Node of the rule.
+        :param ng_heads: Rule heads with their arities, e.g., {'d': {1}, 'a': {2}}.
+        :param g_counter: Counts the ground rules that are checked for unfoundedness.
+        :return: Next character for g_counter.
+        """
+        head_pred = str(node.head).split('(', 1)[0]
+        head_arguments_list = re.sub(r'^.*?\(', '', str(node.head))[:-1].split(',')
+        arity = len(head_arguments_list)
+        head_arguments = ','.join(head_arguments_list)
+        # If such a head predicate with the given arity exists but there is no such fact
+        if head_pred in ng_heads and arity in ng_heads[head_pred] \
+                and not (head_pred in self.__facts and arity in self.__facts[head_pred]
+                         and head_arguments in self.__facts[head_pred][arity]):
+            for body_atom in node.body:
+                if str(body_atom).startswith("not "):
+                    neg = ""
+                else:
+                    neg = "not "
+                print(f"r{g_counter}_unfound({head_arguments}) :- "
+                      + f"{neg + str(body_atom)}.")
+
+            return chr(ord(g_counter) + 1)
+
+    def prevent_unfounded_rules(self, rule_counter):
+        """
+        Prints rule (17), which prevents unfounded results.
+
+        :param rule_counter: Counts the rules in the program.
+        """
+        if rule_counter > 0:
+            for p in self.__f:
+                for arity in self.__f[p]:
+                    for c in self.__f[p][arity]:
+                        rule_sets = []
+                        for r in self.__f[p][arity][c]:
+                            sum_sets = []
+                            for subset in self.__f[p][arity][c][r]:
+                                # print ([c[int(i)] for i in subset])
+                                sum_sets.append(
+                                    f"1:r{r}_unfound{'_' + ''.join(subset) if len(subset) < arity else ''}"
+                                    + (f"({','.join([c[int(i)] for i in subset])})"
+                                       if len(subset) > 0 else ""))
+                            sum_atom = f"#sum {{{'; '.join(sum_sets)}}} >= 1"
+                            rule_sets.append(sum_atom)
+                        head = ','.join(c)
+                        print(f":- {', '.join([f'{p}' + (f'({head})' if len(head) > 0 else '')] + rule_sets)}.")
+

@@ -51,6 +51,7 @@ class ClingoApp(Application):
 
             #print("terms: " + str(transformer.terms))
             #print("facts: " + str(transformer.facts))
+            #print("shows: " + str(transformer.shows))
             #print("ng_heads: " + str(transformer.ng_heads))
             #print("cur_anon: " + str(transformer.cur_anon))
             #print("cur_var: " + str(transformer.cur_var))
