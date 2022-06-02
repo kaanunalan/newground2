@@ -193,7 +193,7 @@ class NglpDlpTransformer(Transformer):
 
             if head is not None:
                 CandidateGuesser().guess_candidates(head, self.__terms, self.__subdoms, self.__ground_guess,
-                                                   self.__cur_var)
+                                                    self.__cur_var)
 
                 unfoundedness_preventer.prevent_unfoundedness(head, self.__rule_counter)
         else:

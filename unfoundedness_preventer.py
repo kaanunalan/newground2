@@ -317,7 +317,7 @@ class UnfoundednessPreventer:
         head_arguments_list = re.sub(r'^.*?\(', '', str(node.head))[:-1].split(',')
         arity = len(head_arguments_list)
         head_arguments = ','.join(head_arguments_list)
-        # If such a head predicate with the given arity exists but there is no such fact
+        # If such a (non-ground) head predicate with the given arity exists but there is no such fact
         if head_pred in ng_heads and arity in ng_heads[head_pred] \
                 and not (head_pred in self.__facts and arity in self.__facts[head_pred]
                          and head_arguments in self.__facts[head_pred][arity]):
