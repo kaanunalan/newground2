@@ -329,6 +329,7 @@ class UnfoundednessPreventer:
                 print(f"r{g_counter}_unfound({head_arguments}) :- "
                       + f"{neg + str(body_atom)}.")
 
+            self.__add_to_foundedness_check(head_pred, arity, [head_arguments.split(',')], g_counter, range(0, arity))
             return chr(ord(g_counter) + 1)
 
     def prevent_unfounded_rules(self, rule_counter):
