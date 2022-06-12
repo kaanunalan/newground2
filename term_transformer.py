@@ -16,10 +16,9 @@ class TermTransformer(Transformer):
         self.__facts = {}  # Facts, arities and arguments, e.g., {'_dom_X': {1: {'1'}}, '_dom_Y': {1: {'(1..2)'}}}
         self.__ng_heads = {}  # Rule heads with their arities, e.g., {'d': {1}, 'a': {2}}
         self.__ng = False  # If the program is non-ground
-        self.__show = False  # --no-show
         self.__shows = {}  # Predicates (and functions) with their arities, e.g., {'a': {2}, 'f': {1}}
         self.__current_f = None  # Current predicate (or function) name
-        self.__no_show = no_show
+        self.__no_show = no_show  # --no-show
 
     def visit_Rule(self, node):
         """
