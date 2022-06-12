@@ -22,7 +22,7 @@ class NglpDlpTransformer(Transformer):
         self.__ground_guess = ground_guess  # --ground-guess
         self.__ground = ground  # --ground
 
-        self.__rules = False  # If this is rule is under #program rules (reduction applied)
+        self.__rules = False  # If this rule is under #program rules (reduction applied)
         self.__ng = False  # If the program is non-ground
         self.__cur_anon = 0  # Number of anonymous variables in a rule
         self.__cur_var = []  # List of variables occurring in the rule, e.g., ['X', 'Y', 'Z']
@@ -32,6 +32,9 @@ class NglpDlpTransformer(Transformer):
         self.__f = {}
         self.__rule_counter = 0  # Counts the rules in the program
         self.__g_counter = "A"  # Counts the ground rules that are checked for unfoundedness
+
+        self.__normal = False  # If this rule is under #program normal (extra rules for normal programs are added)
+        self.__ng_heads_complete = []  # Complete rule heads together with their arguments, e.g., ['a(X,Y)', 'b(2)']
 
     def __reset_after_rule(self):
         """
@@ -52,11 +55,16 @@ class NglpDlpTransformer(Transformer):
         :return: Node of the AST.
         """
         # if not part of #program rules
-        if not self.__rules:
+        if not self.__rules and not self.__normal:
             self.__reset_after_rule()
             if not self.__ground:
                 self.__output_node_format_conform(node)
             return node
+
+        if self.__normal:
+            if node.body.__len__() > 0:
+                self.__ng_heads_complete.append(str(node.head))
+            print("ng_heads " + str(self.__ng_heads_complete))
 
         # check if AST is non-ground
         self.visit_children(node)
@@ -116,8 +124,8 @@ class NglpDlpTransformer(Transformer):
 
     def visit_Program(self, node):
         """
-        Visits the program directives in order to activate the partial body-decoupled grounding
-        if #program rules.
+        Visits the program directives in order to activate the partial body-decoupled grounding without additional rules
+        for normal programs if #program rules or with additional rules for normal programs if #program normal.
 
         :param node: Program directive in the program.
         :return: Node of the AST.
@@ -126,6 +134,12 @@ class NglpDlpTransformer(Transformer):
             self.__rules = True
         else:
             self.__rules = False
+
+        if node.name == "normal":
+            self.__normal = True
+        else:
+            self.__normal = False
+
         return node
 
     def visit_Comparison(self, node):
