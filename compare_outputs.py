@@ -34,6 +34,6 @@ for path1 in pathlib.Path(args.dir_path1).iterdir():
                           + output_path + "/" + os.path.basename(path1) + "_"
                           + os.path.basename(path2))
             else:
-                os.system("linux " + path1.__str__() + " " + path2.__str__() + " > "
+                os.system("diff " + path1.__str__() + " " + path2.__str__() + " > "
                           + output_path + "/" + os.path.basename(path1) + "_"
                           + os.path.basename(path2))

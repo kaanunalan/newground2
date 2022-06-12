@@ -7,7 +7,6 @@ import clingo
 from clingo.ast import Transformer
 
 from candidate_guesser import CandidateGuesser
-from normal_program_handler import NormalProgramHandler
 from sat_ensurer import SatEnsurer
 from unfoundedness_preventer import UnfoundednessPreventer
 
@@ -231,51 +230,3 @@ class NglpDlpTransformer(Transformer):
             for f in self.__shows.keys():
                 for l in self.__shows[f]:
                     print(f"#show {f}/{l}.")
-
-    def add_rules_for_normal_programs(self):
-        """
-        Adds rules for foundedness of normal programs.
-        """
-        NormalProgramHandler().add_rules_for_normal_programs()
-
-    def __get_terms(self):
-        return self.__terms
-
-    def __get_facts(self):
-        return self.__facts
-
-    def __get_shows(self):
-        return self.__shows
-
-    def __get_ng_heads(self):
-        return self.__ng_heads
-
-    def __get_cur_anon(self):
-        return self.__cur_anon
-
-    def __get_cur_var(self):
-        return self.__cur_var
-
-    def __get_cur_func(self):
-        return self.__cur_func
-
-    def __get_cur_func_sign(self):
-        return self.__cur_func_sign
-
-    def __get_rule_counter(self):
-        return self.__rule_counter
-
-    def __get_g_counter(self):
-        return self.__g_counter
-
-    # TODO: Remove the unnecessary getters
-    terms = property(__get_terms)
-    facts = property(__get_facts)
-    shows = property(__get_shows)
-    ng_heads = property(__get_ng_heads)
-    cur_anon = property(__get_cur_anon)
-    cur_var = property(__get_cur_var)
-    cur_func = property(__get_cur_func)
-    cur_func_sign = property(__get_cur_func_sign)
-    rule_counter = property(__get_rule_counter)
-    g_counter = property(__get_g_counter)

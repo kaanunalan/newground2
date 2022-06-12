@@ -7,7 +7,7 @@ import re
 from clingo.control import Control
 from clingox.program import Program, ProgramObserver
 
-from add_subdom import add_to_subdom
+from subdom_adder import add_to_subdom
 
 
 class InstsManager:

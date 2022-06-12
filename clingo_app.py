@@ -31,12 +31,6 @@ class ClingoApp(Application):
         # Parse the programs in the given files and return an abstract syntax tree for each statement via a callback
         parse_files(files, lambda stm: term_transformer(stm))
 
-        #print("subdoms: " + str(term_transformer.subdoms))
-        #print("terms: " + str(term_transformer.terms))
-        #print("heads: " + str(term_transformer.ng_heads))
-        #print("shows: " + str(term_transformer.shows))
-        #print("facts: " + str(term_transformer.facts))
-
         with ProgramBuilder(ctl) as bld:
             transformer = NglpDlpTransformer(bld, term_transformer.terms, term_transformer.facts,
                                              term_transformer.ng_heads, term_transformer.shows,
@@ -48,14 +42,3 @@ class ClingoApp(Application):
             transformer.prevent_unfounded_rules()
             transformer.handle_ground_guess()
             transformer.handle_no_show(self.__no_show)
-
-            #print("terms: " + str(transformer.terms))
-            #print("facts: " + str(transformer.facts))
-            #print("shows: " + str(transformer.shows))
-            #print("ng_heads: " + str(transformer.ng_heads))
-            #print("cur_anon: " + str(transformer.cur_anon))
-            #print("cur_var: " + str(transformer.cur_var))
-            #print("cur_func: " + str(transformer.cur_func))
-            #print("cur_func_sign: " + str(transformer.cur_func_sign))
-            #print("rule_counter: " + str(transformer.rule_counter))
-            #print("g_counter: " + str(transformer.g_counter))

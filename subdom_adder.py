@@ -1,5 +1,4 @@
 def add_to_subdom(subdoms, var, value):
-    # TODO: This method is needed in more than one module.
     """
     Adds the domains for variables and corresponding list of atoms to the dictionary of subdomains.
 

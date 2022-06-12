@@ -1,5 +1,5 @@
 """
-Computes the results of newground for input files in a specified input directory and
+Computes the results of newground2 for input files in a specified input directory and
 writes them into output files in a specified output directory for each
 benchmark instance and for each option.
 """

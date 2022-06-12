@@ -6,7 +6,7 @@ import re
 
 from clingo.ast import Transformer
 
-from add_subdom import add_to_subdom
+from subdom_adder import add_to_subdom
 
 
 class TermTransformer(Transformer):
@@ -100,7 +100,7 @@ class TermTransformer(Transformer):
 
     def visit_SymbolicTerm(self, node):
         """
-        Visits symbolic terms in order to add them to subdomains.
+        Visits symbolic terms in order to save them for later use.
 
         :param node: Symbolic term in the program.
         :return: Node of the AST.
