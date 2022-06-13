@@ -3,11 +3,10 @@ import re
 
 
 class NormalProgramHandler:
-    def __init__(self, terms, facts, subdoms, ground_guess, all_vars):
+    def __init__(self, terms, facts, subdoms, all_vars):
         self.__terms = terms  # Terms occurring in the program, e.g., ['1', '2']
         self.__facts = facts  # Facts, arities and arguments, e.g., {'_dom_X': {1: {'1'}}, '_dom_Y': {1: {'(1..2)'}}}
         self.__subdoms = subdoms  # Domains of each variable separately, e.g.,  {'Y': ['1', '2'], 'Z': ['1', '2']}
-        self.__ground_guess = ground_guess  # --ground-guess
         self.__normal = False  # If this rule is under #program normal (extra rules for normal programs are added)
         self.__heads_complete = []  # Rule heads together with their arguments, e.g., ['a(X,Y)', 'b(2)']
         self.__all_vars = all_vars  # List of all variables occurring in the program, e.g., ['X', 'Y', 'Z']
@@ -16,31 +15,23 @@ class NormalProgramHandler:
         for h1 in self.__heads_complete:
             for h2 in self.__heads_complete:
                 if h1 != h2:
-                    if self.__ground_guess:
-                        h1s_grounded = self.__ground_head(h1)
-                        h2s_grounded = self.__ground_head(h2)
-                        for h1_grounded in h1s_grounded:
-                            for h2_grounded in h2s_grounded:
-                                if h1_grounded != h2_grounded:
-                                    print(f"{h1_grounded}__before__{h2_grounded} | {h2_grounded}__before__{h1_grounded}.")
-                                    self.__ensure_transitivity(h1, h2, h1_grounded, h2_grounded)
-                    else:
-                        if h1 != h2:
-                            print(f"{self.__reformat_pred(h1)}__before__{self.__reformat_pred(h2)} "
-                                  f"| {self.__reformat_pred(h2)}__before__{self.__reformat_pred(h1)}.")
-                            self.__ensure_transitivity(h1, h2, h1, h2)
+                    h1s_grounded = self.__ground_head(h1)
+                    h2s_grounded = self.__ground_head(h2)
+                    for h1_grounded in h1s_grounded:
+                        for h2_grounded in h2s_grounded:
+                            if h1_grounded != h2_grounded:
+                                print(
+                                    f"{h1_grounded}__before__{h2_grounded} | {h2_grounded}__before__{h1_grounded}.")
+                                self.__ensure_transitivity(h1, h2, h1_grounded, h2_grounded)
 
     def __ensure_transitivity(self, h1, h2, h1_grounded, h2_grounded):
         for h3 in self.__heads_complete:
             if h3 != h1 and h3 != h2:
-                if self.__ground_guess:
-                    h3s_grounded = self.__ground_head(h3)
-                    for h3_grounded in h3s_grounded:
-                        if h1_grounded != h2_grounded and h2_grounded != h3_grounded and h1_grounded != h3_grounded:
-                            print(f":- {h1_grounded}__before__{h2_grounded}, {h2_grounded}__before__{h3_grounded}, {h3_grounded}__before__{h1_grounded}.")
-                else:
-                    if h1_grounded != h2_grounded and h2_grounded != h3 and h1_grounded != h3:
-                        print(f":- {h1_grounded}__before__{h2_grounded}, {h2_grounded}__before__{h3}, {h3}__before__{h1_grounded}.")
+                h3s_grounded = self.__ground_head(h3)
+                for h3_grounded in h3s_grounded:
+                    if h1_grounded != h2_grounded and h2_grounded != h3_grounded and h1_grounded != h3_grounded:
+                        print(
+                            f":- {h1_grounded}__before__{h2_grounded}, {h2_grounded}__before__{h3_grounded}, {h3_grounded}__before__{h1_grounded}.")
 
     def __ground_head(self, head):
         head_args = re.sub(r'^.*?\(', '', str(head))[:-1].split(',')  # all arguments (incl. duplicates / terms)
@@ -56,19 +47,13 @@ class NormalProgramHandler:
         return heads_grounded
 
     def derive_unjustifiability_normal(self, unfound_atom, f_interpretation, f_rem_atoms, head, body_pred):
-        if self.__ground_guess:
-            if not self.__is_in_facts(f_interpretation):
-                heads_grounded = self.__ground_head(head)
-                for head_grounded in heads_grounded:
-                    unjustifiability_rule = f"{unfound_atom} :- {', '.join(f_rem_atoms)}"
-                    unjustifiability_rule += ", " if len(f_rem_atoms) > 0 else ""
-                    unjustifiability_rule += self.__reformat_pred(f_interpretation) + "__before__" + head_grounded + "."
-                    print(unjustifiability_rule)
-        elif not self.__is_in_facts(body_pred):
-            unjustifiability_rule = f"{unfound_atom} :- {', '.join(f_rem_atoms)}"
-            unjustifiability_rule += ", " if len(f_rem_atoms) > 0 else ""
-            unjustifiability_rule += self.__reformat_pred(body_pred) + "__before__" + self.__reformat_pred(head) + "."
-            print(unjustifiability_rule)
+        if not self.__is_in_facts(f_interpretation):
+            heads_grounded = self.__ground_head(head)
+            for head_grounded in heads_grounded:
+                unjustifiability_rule = f"{unfound_atom} :- {', '.join(f_rem_atoms)}"
+                unjustifiability_rule += ", " if len(f_rem_atoms) > 0 else ""
+                unjustifiability_rule += self.__reformat_pred(f_interpretation) + "__before__" + head_grounded + "."
+                print(unjustifiability_rule)
 
     def __is_in_facts(self, body_pred):
         body_pred_name = body_pred.split("(", 1)[0]

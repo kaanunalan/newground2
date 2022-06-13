@@ -34,7 +34,7 @@ class NglpDlpTransformer(Transformer):
         self.__rule_counter = 0  # Counts the rules in the program
         self.__g_counter = "A"  # Counts the ground rules that are checked for unfoundedness
 
-        self.__normal_program_handler = NormalProgramHandler(terms, facts, subdoms, ground_guess, all_vars)
+        self.__normal_program_handler = NormalProgramHandler(terms, facts, subdoms, all_vars)
 
     def __reset_after_rule(self):
         """
