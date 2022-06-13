@@ -19,6 +19,7 @@ class TermTransformer(Transformer):
         self.__shows = {}  # Predicates (and functions) with their arities, e.g., {'a': {2}, 'f': {1}}
         self.__current_f = None  # Current predicate (or function) name
         self.__no_show = no_show  # --no-show
+        self.__all_vars = []  # List of all variables occurring in the program, e.g., ['X', 'Y', 'Z']
 
     def visit_Rule(self, node):
         """
@@ -82,6 +83,8 @@ class TermTransformer(Transformer):
         :return Node of the AST.
         """
         self.__ng = True
+        self.__all_vars.append(str(node))
+        self.__all_vars = list(dict.fromkeys(self.__all_vars))
         return node
 
     def visit_Interval(self, node):
@@ -136,8 +139,12 @@ class TermTransformer(Transformer):
     def __get_shows(self):
         return self.__shows
 
+    def __get_all_vars(self):
+        return self.__all_vars
+
     terms = property(__get_terms)
     subdoms = property(__get_subdoms)
     facts = property(__get_facts)
     ng_heads = property(__get_ng_heads)
     shows = property(__get_shows)
+    all_vars = property(__get_all_vars)

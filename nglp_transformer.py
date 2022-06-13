@@ -7,12 +7,13 @@ import clingo
 from clingo.ast import Transformer
 
 from candidate_guesser import CandidateGuesser
+from normal_program_handler import NormalProgramHandler
 from sat_ensurer import SatEnsurer
 from unfoundedness_preventer import UnfoundednessPreventer
 
 
 class NglpDlpTransformer(Transformer):
-    def __init__(self, bld, terms, facts, ng_heads, shows, subdoms, ground_guess, ground):
+    def __init__(self, bld, terms, facts, ng_heads, shows, subdoms, ground_guess, ground, all_vars):
         self.__bld = bld  # Object to build non-ground programs
         self.__terms = terms  # Terms occurring in the program, e.g., ['1', '2']
         self.__facts = facts  # Facts, arities and arguments, e.g., {'_dom_X': {1: {'1'}}, '_dom_Y': {1: {'(1..2)'}}}
@@ -33,8 +34,7 @@ class NglpDlpTransformer(Transformer):
         self.__rule_counter = 0  # Counts the rules in the program
         self.__g_counter = "A"  # Counts the ground rules that are checked for unfoundedness
 
-        self.__normal = False  # If this rule is under #program normal (extra rules for normal programs are added)
-        self.__ng_heads_complete = []  # Complete rule heads together with their arguments, e.g., ['a(X,Y)', 'b(2)']
+        self.__normal_program_handler = NormalProgramHandler(terms, facts, subdoms, ground_guess, all_vars)
 
     def __reset_after_rule(self):
         """
@@ -55,16 +55,15 @@ class NglpDlpTransformer(Transformer):
         :return: Node of the AST.
         """
         # if not part of #program rules
-        if not self.__rules and not self.__normal:
+        if not self.__rules and not self.__normal_program_handler.normal:
             self.__reset_after_rule()
             if not self.__ground:
                 self.__output_node_format_conform(node)
             return node
 
-        if self.__normal:
+        if self.__normal_program_handler.normal:
             if node.body.__len__() > 0:
-                self.__ng_heads_complete.append(str(node.head))
-            print("ng_heads " + str(self.__ng_heads_complete))
+                self.__normal_program_handler.heads_complete.append(str(node.head))
 
         # check if AST is non-ground
         self.visit_children(node)
@@ -136,9 +135,9 @@ class NglpDlpTransformer(Transformer):
             self.__rules = False
 
         if node.name == "normal":
-            self.__normal = True
+            self.__normal_program_handler.normal = True
         else:
-            self.__normal = False
+            self.__normal_program_handler.normal = False
 
         return node
 
@@ -188,7 +187,7 @@ class NglpDlpTransformer(Transformer):
         unfoundedness_preventer = UnfoundednessPreventer(self.__terms, self.__facts, self.__subdoms,
                                                          self.__ground_guess,
                                                          self.__cur_var, self.__cur_func, self.__cur_func_sign,
-                                                         self.__cur_comp, self.__f)
+                                                         self.__cur_comp, self.__f, self.__normal_program_handler)
         if self.__ng:
             self.__rule_counter += 1
             if str(node.head) != "#false":
@@ -223,7 +222,7 @@ class NglpDlpTransformer(Transformer):
         unfoundedness_preventer = UnfoundednessPreventer(self.__terms, self.__facts, self.__subdoms,
                                                          self.__ground_guess,
                                                          self.__cur_var, self.__cur_func, self.__cur_func_sign,
-                                                         self.__cur_comp, self.__f)
+                                                         self.__cur_comp, self.__f, self.__normal_program_handler)
         unfoundedness_preventer.prevent_unfounded_rules(self.__rule_counter)
 
     def handle_ground_guess(self):
@@ -244,3 +243,6 @@ class NglpDlpTransformer(Transformer):
             for f in self.__shows.keys():
                 for l in self.__shows[f]:
                     print(f"#show {f}/{l}.")
+
+    def handle_normal_programs(self):
+        self.__normal_program_handler.add_auxiliary_predicates()
