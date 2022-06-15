@@ -83,15 +83,5 @@ class NormalProgramHandler:
     def __get_heads_complete(self):
         return self.__heads_complete
 
-    def __set_heads_complete(self, heads_complete):
-        self.__heads_complete = heads_complete
-
-    def __get_all_vars(self):
-        return self.__all_vars
-
-    def __set_all_vars(self, all_vars):
-        self.__all_vars = all_vars
-
     normal = property(__get_normal, __set_normal)
     heads_complete = property(__get_heads_complete)
-    all_vars = property(__get_all_vars, __set_all_vars)
