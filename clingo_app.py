@@ -34,7 +34,7 @@ class ClingoApp(Application):
 
     def __transform_nglp_dlp(self, ctl, files):
         """
-        Transforms a non ground logic program to a disjunctive logic program by applying the reduction.
+        Transforms a non ground logic program into a disjunctive logic program by applying the reduction.
 
         :param ctl: The main control object.
         :param files: The files passed to clingo.
