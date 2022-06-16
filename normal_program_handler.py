@@ -1,3 +1,8 @@
+"""
+This module adds additional rules in order to ensure the justifiability in normal programs.
+"""
+
+
 import itertools
 import re
 
