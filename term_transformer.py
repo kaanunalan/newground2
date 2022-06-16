@@ -77,7 +77,8 @@ class TermTransformer(Transformer):
 
     def visit_Variable(self, node):
         """
-        Visits variables of the program in order to determine if the program is non-ground.
+        Visits variables of the program in order to determine if the program
+        is non-ground and save them for later use.
 
         :param node: Variable in the program.
         :return Node of the AST.
