@@ -195,7 +195,6 @@ class UnfoundednessPreventer:
         :param g_r: Data structure representing variable dependencies for further processing.
         :param rule_counter: Counts the rules in the program.
         """
-        print(covered_cmp)
         # over every body-atom
         for f in self.__cur_func:
             if f != head:
@@ -300,6 +299,7 @@ class UnfoundednessPreventer:
     def __get_vars_needed(self, h_vars, f_vars, f_rem, g):
         """
         Gets bounded head variables which are needed for foundedness.
+
         :param h_vars: Variables occurring in head.
         :param f_vars: Variables occurring in a predicate of rule body.
         :param f_rem: Variables occurring in body predicate but not in head.
