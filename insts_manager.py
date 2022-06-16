@@ -1,5 +1,5 @@
 """
-This module manages the instantiation which is specified through the subprogram #program insts
+This module manages the instantiation which is specified through the subprogram #program insts.
 """
 
 import re
