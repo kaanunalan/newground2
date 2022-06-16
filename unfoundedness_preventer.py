@@ -20,14 +20,14 @@ class UnfoundednessPreventer:
         self.__cur_func = cur_func  # List of current predicates (and functions)
         self.__cur_func_sign = cur_func_sign  # Boolean list for signs of literals
         self.__cur_comp = cur_comp  # List of comparison operations occurring in the rule
-        self.__f = f
+        self.__f = f  # Contains information about foundedness rules
 
     def prevent_unfoundedness(self, head, rule_counter):
         """
-        Prints rules (9), (15) and (16) to prevent unfoundedness.
+        Prints the rules (8), (14) and (15) to prevent unfoundedness.
 
         :param head: Head of the rule.
-        :param rule_counter: # Counts the rules in the program.
+        :param rule_counter: Counts the rules in the program.
         """
         # head
         h_args_len = len(head.arguments)
@@ -60,7 +60,7 @@ class UnfoundednessPreventer:
         for comp in self.__cur_comp:
             g.add_edge(str(comp.left), str(comp.left))
 
-        # Print rule (9) after determining the dependent variables
+        # Print rule (8) after determining the dependent variables
         for r in rem:
             g_r[r] = []
             for n in nx.dfs_postorder_nodes(g, source=r):
@@ -111,6 +111,20 @@ class UnfoundednessPreventer:
         self.__derive_unjustifiability_pred(covered_cmp, head, h_args, h_vars, h_args_len, rem, g, g_r, rule_counter)
 
     def __derive_unjustifiability_comp(self, covered_cmp, head, h_args, h_vars, h_args_len, rem, g, g_r, rule_counter):
+        """
+        Derives unjustifiability for comparison operators by printing the rules (14) and (15)
+        in order to achieve more compact programs.
+
+        :param covered_cmp: Dictionary of covered tuple subsets (combinations) of comparisons for a given variable set.
+        :param head: Head of the rule.
+        :param h_args: Head arguments with duplicates and terms.
+        :param h_vars: Head variables (without duplicates and terms).
+        :param h_args_len: Length of head arguments.
+        :param rem: Variables that are not in head.
+        :param g: Variable graph.
+        :param g_r: Data structure representing variable dependencies for further processing.
+        :param rule_counter: Counts the rules in the program.
+        """
         # for every cmp operator
         for f in self.__cur_comp:
             f_args = [str(f.left), str(f.right)]  # all arguments (incl. duplicates / terms)
@@ -166,6 +180,20 @@ class UnfoundednessPreventer:
                                                         rule_counter, index_vars)
 
     def __derive_unjustifiability_pred(self, covered_cmp, head, h_args, h_vars, h_args_len, rem, g, g_r, rule_counter):
+        """
+        Derives unjustifiability for body predicates by printing the rules (14) and (15).
+
+        :param covered_cmp: Dictionary of covered tuple subsets (combinations) of comparisons for a given variable set.
+        :param head: Head of the rule.
+        :param h_args: Head arguments with duplicates and terms.
+        :param h_vars: Head variables (without duplicates and terms).
+        :param h_args_len: Length of head arguments.
+        :param rem: Variables that are not in head.
+        :param g: Variable graph.
+        :param g_r: Data structure representing variable dependencies for further processing.
+        :param rule_counter: Counts the rules in the program.
+        """
+        print(covered_cmp)
         # over every body-atom
         for f in self.__cur_func:
             if f != head:
@@ -229,6 +257,17 @@ class UnfoundednessPreventer:
                                                         rule_counter, index_vars)
 
     def __add_to_foundedness_check(self, pred, arity, combinations, rule, indices):
+        """
+        Adds to list of unfoundedness rules in order to use the information
+        to print rules that prevent unfoundedness.
+
+        :param pred: Predicate.
+        :param arity: Arity of the predicate.
+        :param combinations: List of possible grounding combinations.
+        :param rule: Dictionary that maps rule numbers to unfoundedness rule indices.
+        :param indices: Indices of the unfoundedness rules.
+        :return:
+        """
         indices = tuple(indices)
 
         for c in combinations:
@@ -251,6 +290,14 @@ class UnfoundednessPreventer:
                 self.__f[pred][arity][c][rule].add(indices)
 
     def __get_vars_needed(self, h_vars, f_vars, f_rem, g):
+        """
+        Gets bounded head variables which are needed for foundedness.
+        :param h_vars: Variables occurring in head.
+        :param f_vars: Variables occurring in a predicate of rule body.
+        :param f_rem: Variables occurring in body predicate but not in head.
+        :param g: Variable graph.
+        :return: List of needed head variables in order to ensure foundedness.
+        """
         f_vars_needed = [f for f in f_vars if f in h_vars]  # bounded head vars which are needed for foundation
         for r in f_rem:
             for n in nx.dfs_postorder_nodes(g, source=r):
@@ -259,6 +306,15 @@ class UnfoundednessPreventer:
         return f_vars_needed
 
     def __generate_combination_information(self, h_args, f_vars_needed, c, head):
+        """
+        Generates some information using the grounding combination in order to use it for ensuring justifiability.
+
+        :param h_args: List of head arguments.
+        :param f_vars_needed: List of bounded head variables needed to get combination information.
+        :param c: A possible combination.
+        :param head: Head node.
+        :return: Information about combinations needed for unfoundedness checks.
+        """
         interpretation = []  # interpretation-list
         interpretation_incomplete = []  # uncomplete; without removed vars
         nnv = []  # not needed vars
@@ -306,7 +362,7 @@ class UnfoundednessPreventer:
 
     def check_found_ground_rules(self, node, ng_heads, g_counter):
         """
-        Checks foundedness of ground rules if needed
+        Checks foundedness of ground rules if needed.
 
         :param node: Node of the rule.
         :param ng_heads: Rule heads with their arities, e.g., {'d': {1}, 'a': {2}}.
@@ -334,7 +390,7 @@ class UnfoundednessPreventer:
 
     def prevent_unfounded_rules(self, rule_counter):
         """
-        Prints rule (17), which prevents unfounded results.
+        Prints rules (16), which prevent unfounded results.
 
         :param rule_counter: Counts the rules in the program.
         """
