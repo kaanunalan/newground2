@@ -81,7 +81,7 @@ class NormalProgramHandler:
             heads_grounded.append(f"{head_pred}__{atoms}" if len(c) > 0 else f"{head_pred}")
         return heads_grounded
 
-    def derive_unjustifiability_normal(self, unfound_atom, f_interpretation, f_rem_atoms, head, body_pred):
+    def derive_unjustifiability_normal(self, unfound_atom, f_interpretation, f_rem_atoms, head):
         """
         Derives the unjustifiability of an interpretation by printing the rule (20).
 
@@ -90,8 +90,6 @@ class NormalProgramHandler:
         rule can be printed.
         :param f_rem_atoms: Atoms needed to prevent unfoundedness.
         :param head: Head of the rule.
-        :param body_pred: One of the body predicates of the rule. It should start with "not "
-        so that the rule can be printed.
         """
         if f_interpretation.startswith("not "):
             if not self.__is_in_facts(f_interpretation):
@@ -109,15 +107,17 @@ class NormalProgramHandler:
         :param atom: An atom.
         :return: 'True' if the given atom is a fact, 'False' otherwise.
         """
-        body_pred_name = atom.split("(", 1)[0]
-        if body_pred_name.startswith("not "):
-            body_pred_name = body_pred_name[4:]
+        atom_name = atom.split("(", 1)[0]
+        if atom_name.startswith("not "):
+            atom_name = atom_name[4:]
+        # If the predicate arity is 0, check only if there is such an atom in facts
         if "()" in atom or "(" not in atom:
-            return True
+            if atom_name in self.__facts:
+                return True
         body_args = re.sub(r'^.*?\(', "", str(atom))[:-1].split(",")  # all arguments (incl. duplicates / terms)
         body_args_joined = ",".join(body_args)
-        if body_pred_name in self.__facts and len(body_args) in self.__facts[body_pred_name] \
-                and body_args_joined in self.__facts[body_pred_name][len(body_args)]:
+        if atom_name in self.__facts and len(body_args) in self.__facts[atom_name] \
+                and body_args_joined in self.__facts[atom_name][len(body_args)]:
             return True
         return False
 
@@ -130,9 +130,10 @@ class NormalProgramHandler:
         :return: Reformatted predicate.
         """
         pred_name = pred.split("(", 1)[0]
-        pred_args = re.sub(r'^.*?\(', "", str(pred))[:-1].split(",")  # all arguments (incl. duplicates / terms)
-        if pred_args == [''] or pred_args == ["not "]:
+        # If the predicate arity is 0, return the pred_name directly
+        if "()" in pred or "(" not in pred:
             return pred_name
+        pred_args = re.sub(r'^.*?\(', "", str(pred))[:-1].split(",")  # all arguments (incl. duplicates / terms)
         joined_args = "_".join(arg for arg in pred_args)
         return pred_name + "__" + joined_args
 

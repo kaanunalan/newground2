@@ -257,7 +257,7 @@ class UnfoundednessPreventer:
                         if self.__normal_program_handler.normal:
                             body_literal = ("" if self.__cur_func_sign[self.__cur_func.index(f)] else "not ") + str(f)
                             self.__normal_program_handler.derive_unjustifiability_normal(
-                                unfound_atom, f_interpretation, f_rem_atoms, str(head), body_literal)
+                                unfound_atom, f_interpretation, f_rem_atoms, str(head))
 
                         # predicate arity combinations rule indices
                         self.__add_to_foundedness_check(head.name, h_args_len, combs_covered,
@@ -398,7 +398,7 @@ class UnfoundednessPreventer:
                     self.__normal_program_handler.derive_unjustifiability_normal(
                         f"r{g_counter}_unfound({head_arguments})",
                         neg + str(body_atom), [],
-                        str(node.head), neg + str(body_atom))
+                        str(node.head))
 
             self.__add_to_foundedness_check(head_pred, arity, [head_arguments.split(',')], g_counter, range(0, arity))
             return chr(ord(g_counter) + 1)
