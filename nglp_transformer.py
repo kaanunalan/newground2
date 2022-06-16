@@ -30,7 +30,7 @@ class NglpDlpTransformer(Transformer):
         self.__cur_func = []  # List of current predicates (and functions)
         self.__cur_func_sign = []  # Boolean list for signs of literals
         self.__cur_comp = []  # List of comparison operations occurring in the rule
-        self.__f = {}
+        self.__f = {}  # Contains information about foundedness rules
         self.__rule_counter = 0  # Counts the rules in the program
         self.__g_counter = "A"  # Counts the ground rules that are checked for unfoundedness
 
