@@ -24,17 +24,18 @@ class SatEnsurer:
         # Boolean list for signs of literals ('True' for negative literal)
         self.__cur_func_sign = cur_func_sign if cur_func_sign is not None else []
         # List of comparison operations occurring in the rule
-        self.__cur_comp = cur_comp if cur_comp is not None else []  # List of comparison operations occurring in the rule
-        self.__rule_counter = rule_counter  # Counts rules in the program
+        self.__cur_comp = cur_comp if cur_comp is not None else []
+        # Counts rules in the program
+        self.__rule_counter = rule_counter
 
     def guess_sat_saturate_assignments(self):
         """
-        Prints rules (3) and (7) which are responsible for guessing and saturating assignments
+        Prints rules (2) and (6) which are responsible for guessing and saturating assignments
         of variables to domain values.
         """
         # MOD
         # domaining per rule variable
-        # Print rule (3)
+        # Print rule (2)
         for v in self.__cur_var:  # variables
             disjunction = ""
             if v in self.__subdoms:
@@ -47,7 +48,7 @@ class SatEnsurer:
                 disjunction = disjunction[:-3] + "."
                 print(disjunction)
 
-            # Print rule (7)
+            # Print rule (6)
             if v in self.__subdoms:
                 for t in self.__subdoms[v]:  # domain
                     # r1_x(1) :- sat. r1_x(2) :- sat. ...
@@ -59,19 +60,19 @@ class SatEnsurer:
 
     def ensure_sat(self, head):
         """
-        Prints rules (4) and (5) which are responsible for ensuring satisfiability.
+        Prints rules (3) and (4) which are responsible for ensuring satisfiability.
 
         :param head: Head of the rule.
         """
         # SAT
-        # Print rule (4) and (5)
+        # Print rules (3) and (4)
         covered_cmp = {}  # reduce SAT rules when compare-operators are pre-checked
         self.__ensure_sat_cmp(covered_cmp)
         self.__ensure_sat_pred(head, covered_cmp)
 
     def __ensure_sat_cmp(self, covered_cmp):
         """
-        Prints rules (4) and (5) for comparison operators in order to achieve more compact programs.
+        Prints rules (3) and (4) for comparison operators in order to achieve more compact programs.
 
         :param covered_cmp: Dictionary of covered tuple subsets (combinations) for a given variable set.
         """
@@ -108,7 +109,7 @@ class SatEnsurer:
 
     def __ensure_sat_pred(self, head, covered_cmp):
         """
-        Prints rules (4) and (5) for normal predicates.
+        Prints rules (3) and (4) for normal predicates.
 
         :param head: Head of the rule.
         """
@@ -150,15 +151,15 @@ class SatEnsurer:
 
     def check_if_all_sat(self, bld):
         """
-        Prints rules (6) and (8), which are responsible for checking if all rules
+        Prints rules (5) and (7), which are responsible for checking if all rules
         of the program are satisfiable.
         """
         if self.__rule_counter > 0:
             parse_string(":- not sat.", lambda stm: bld.add(stm))
-            # Prints rule (8)
+            # Prints rule (7)
             print(":- not sat.")
             # parse_string(f"sat :- {','.join([f'sat_r{i}' for i in range(1, transformer.counter+1)])}.",
             # lambda stm: self.bld.add(stm))
 
-            # Prints rule (6)
+            # Prints rule (5)
             print(f"sat :- {','.join([f'sat_r{i}' for i in range(1, self.__rule_counter + 1)])}.")
