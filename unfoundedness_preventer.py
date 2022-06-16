@@ -195,7 +195,6 @@ class UnfoundednessPreventer:
         :param g_r: Data structure representing variable dependencies for further processing.
         :param rule_counter: Counts the rules in the program.
         """
-        print(covered_cmp)
         # over every body-atom
         for f in self.__cur_func:
             if f != head:
@@ -392,11 +391,6 @@ class UnfoundednessPreventer:
                     neg = "not "
                 print(f"r{g_counter}_unfound({head_arguments}) :- "
                       + f"{neg + str(body_atom)}.")
-
-                # Ensure justifiability of normal programs if #program normal
-                if self.__normal_program_handler.normal:
-                    print(str(body_atom))
-                    #self.__normal_program_handler.ensure_justifiability_normal_programs(str(body_atom), [], g_counter, str(node.head), neg + str(body_atom))
 
             self.__add_to_foundedness_check(head_pred, arity, [head_arguments.split(',')], g_counter, range(0, arity))
             return chr(ord(g_counter) + 1)
