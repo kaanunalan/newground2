@@ -20,7 +20,7 @@ if not os.path.exists(args.dir_path2):
     raise NotADirectoryError(args.dir_path2 + "is not a directory")
 output_path = args.output_path
 if output_path is None:
-    output_path = "comparison_results"
+    output_path = "../comparison_results"
     if not os.path.exists(output_path):
         os.system("mkdir " + output_path)
 else:
