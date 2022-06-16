@@ -193,7 +193,6 @@ class UnfoundednessPreventer:
         :param g_r: Data structure representing variable dependencies for further processing.
         :param rule_counter: Counts the rules in the program.
         """
-        print(covered_cmp)
         # over every body-atom
         for f in self.__cur_func:
             if f != head:
