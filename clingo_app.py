@@ -19,6 +19,13 @@ class ClingoApp(Application):
         self.__ground = ground  # --ground
 
     def main(self, ctl, files):
+        """
+        This function replaces clingo's default main function
+        in order to apply the reduction of body-decoupled grounding.
+
+        :param ctl: The main control object.
+        :param files: The files passed to clingo.
+        """
         # Read subdomains in #program insts.
         if self.__ground:
             InstsManager(files).manage_insts()
@@ -26,6 +33,12 @@ class ClingoApp(Application):
         self.__transform_nglp_dlp(ctl, files)
 
     def __transform_nglp_dlp(self, ctl, files):
+        """
+        Transforms a non ground logic program into a disjunctive logic program by applying the reduction.
+
+        :param ctl: The main control object.
+        :param files: The files passed to clingo.
+        """
         # Initialize the term transformer
         term_transformer = TermTransformer(self.__subdoms, self.__no_show)
         # Parse the programs in the given files and return an abstract syntax tree for each statement via a callback
