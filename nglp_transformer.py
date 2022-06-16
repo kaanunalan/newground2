@@ -7,6 +7,7 @@ import clingo
 from clingo.ast import Transformer
 
 from candidate_guesser import CandidateGuesser
+from normal_program_handler import NormalProgramHandler
 from sat_ensurer import SatEnsurer
 from unfoundedness_preventer import UnfoundednessPreventer
 
@@ -22,7 +23,7 @@ class NglpDlpTransformer(Transformer):
         self.__ground_guess = ground_guess  # --ground-guess
         self.__ground = ground  # --ground
 
-        self.__rules = False  # If this is rule is under #program rules (reduction applied)
+        self.__rules = False  # If this rule is under #program rules (reduction applied)
         self.__ng = False  # If the program is non-ground
         self.__cur_anon = 0  # Number of anonymous variables in a rule
         self.__cur_var = []  # List of variables occurring in the rule, e.g., ['X', 'Y', 'Z']
@@ -32,6 +33,8 @@ class NglpDlpTransformer(Transformer):
         self.__f = {}
         self.__rule_counter = 0  # Counts the rules in the program
         self.__g_counter = "A"  # Counts the ground rules that are checked for unfoundedness
+
+        self.__normal_program_handler = NormalProgramHandler(terms, facts, subdoms)
 
     def __reset_after_rule(self):
         """
@@ -52,7 +55,7 @@ class NglpDlpTransformer(Transformer):
         :return: Node of the AST.
         """
         # if not part of #program rules
-        if not self.__rules:
+        if not self.__rules and not self.__normal_program_handler.normal:
             self.__reset_after_rule()
             if not self.__ground:
                 self.__output_node_format_conform(node)
@@ -116,8 +119,8 @@ class NglpDlpTransformer(Transformer):
 
     def visit_Program(self, node):
         """
-        Visits the program directives in order to activate the partial body-decoupled grounding
-        if #program rules.
+        Visits the program directives in order to activate the partial body-decoupled grounding without additional rules
+        for normal programs if #program rules or with additional rules for normal programs if #program normal.
 
         :param node: Program directive in the program.
         :return: Node of the AST.
@@ -126,6 +129,12 @@ class NglpDlpTransformer(Transformer):
             self.__rules = True
         else:
             self.__rules = False
+
+        if node.name == "normal":
+            self.__normal_program_handler.normal = True
+        else:
+            self.__normal_program_handler.normal = False
+
         return node
 
     def visit_Comparison(self, node):
@@ -174,7 +183,7 @@ class NglpDlpTransformer(Transformer):
         unfoundedness_preventer = UnfoundednessPreventer(self.__terms, self.__facts, self.__subdoms,
                                                          self.__ground_guess,
                                                          self.__cur_var, self.__cur_func, self.__cur_func_sign,
-                                                         self.__cur_comp, self.__f)
+                                                         self.__cur_comp, self.__f, self.__normal_program_handler)
         if self.__ng:
             self.__rule_counter += 1
             if str(node.head) != "#false":
@@ -195,7 +204,12 @@ class NglpDlpTransformer(Transformer):
                                                     self.__cur_var)
 
                 unfoundedness_preventer.prevent_unfoundedness(head, self.__rule_counter)
+                if self.__normal_program_handler.normal:
+                    self.__normal_program_handler.prove_head(head, self.__cur_var, self.__cur_func)
         else:
+            # already proven if the ground head is a fact
+            if self.__normal_program_handler.normal:
+                self.__normal_program_handler.derive_provability_fact(node, self.__cur_var, self.__cur_func, self.__g_counter)
             # found-check for ground-rules (if needed) (pred, arity, combinations, rule, indices)
             self.__g_counter = unfoundedness_preventer.check_found_ground_rules(node, self.__ng_heads, self.__g_counter)
             # print rule as it is
@@ -209,7 +223,7 @@ class NglpDlpTransformer(Transformer):
         unfoundedness_preventer = UnfoundednessPreventer(self.__terms, self.__facts, self.__subdoms,
                                                          self.__ground_guess,
                                                          self.__cur_var, self.__cur_func, self.__cur_func_sign,
-                                                         self.__cur_comp, self.__f)
+                                                         self.__cur_comp, self.__f, self.__normal_program_handler)
         unfoundedness_preventer.prevent_unfounded_rules(self.__rule_counter)
 
     def handle_ground_guess(self):

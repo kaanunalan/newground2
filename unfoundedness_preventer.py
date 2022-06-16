@@ -11,7 +11,8 @@ from comparison_precompiling_utils import ComparisonPrecompilingUtils
 
 
 class UnfoundednessPreventer:
-    def __init__(self, terms, facts, subdoms, ground_guess, cur_var, cur_func, cur_func_sign, cur_comp, f):
+    def __init__(self, terms, facts, subdoms, ground_guess, cur_var, cur_func,
+                 cur_func_sign, cur_comp, f, normal_program_handler):
         self.__terms = terms  # Terms occurring in the program, e.g., ['1', '2']
         self.__facts = facts  # Facts, arities and arguments, e.g., {'_dom_X': {1: {'1'}}, '_dom_Y': {1: {'(1..2)'}}}
         self.__subdoms = subdoms  # Domains of each variable separately, e.g.,  {'Y': ['1', '2'], 'Z': ['1', '2']}
@@ -21,6 +22,7 @@ class UnfoundednessPreventer:
         self.__cur_func_sign = cur_func_sign  # Boolean list for signs of literals
         self.__cur_comp = cur_comp  # List of comparison operations occurring in the rule
         self.__f = f
+        self.__normal_program_handler = normal_program_handler
 
     def prevent_unfoundedness(self, head, rule_counter):
         """
@@ -224,6 +226,12 @@ class UnfoundednessPreventer:
                         print(unfound_atom + f" :- "
                                              f"{', '.join([f_interpretation] + f_rem_atoms)}.")
 
+                        # Ensure justifiability of normal programs if #program normal
+                        if self.__normal_program_handler.normal:
+                            body_literal = f
+                            self.__normal_program_handler.ensure_justifiability_normal_programs(
+                                f_interpretation, f_rem_atoms, rule_counter, body_literal, self.__cur_func)
+
                         # predicate arity combinations rule indices
                         self.__add_to_foundedness_check(head.name, h_args_len, combs_covered,
                                                         rule_counter, index_vars)
@@ -328,6 +336,11 @@ class UnfoundednessPreventer:
                     neg = "not "
                 print(f"r{g_counter}_unfound({head_arguments}) :- "
                       + f"{neg + str(body_atom)}.")
+
+                # Ensure justifiability of normal programs if #program normal
+                if self.__normal_program_handler.normal:
+                    print(str(body_atom))
+                    #self.__normal_program_handler.ensure_justifiability_normal_programs(str(body_atom), [], g_counter, str(node.head), neg + str(body_atom))
 
             self.__add_to_foundedness_check(head_pred, arity, [head_arguments.split(',')], g_counter, range(0, arity))
             return chr(ord(g_counter) + 1)
