@@ -1,3 +1,4 @@
+% Unsatisfiable with --ground, false solution otherwise
 a(X,Y) :- c(X,Y).
 d :- c(X,Y).
 #program rules.

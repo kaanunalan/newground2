@@ -1,3 +1,8 @@
+"""
+This module adds additional rules in order to ensure the justifiability in normal programs.
+"""
+
+
 import itertools
 import re
 
@@ -12,6 +17,11 @@ class NormalProgramHandler:
         self.__all_vars = all_vars  # List of all variables occurring in the program, e.g., ['X', 'Y', 'Z']
 
     def add_auxiliary_predicates(self):
+        """
+        Adds auxiliary predicates modeling the precedence in the order of derivation
+        and corresponding constraints taking care of transitivity by printing the rules
+        (18) and (19).
+        """
         for h1 in self.__heads_complete:
             for h2 in self.__heads_complete:
                 if h1 != h2:
@@ -22,9 +32,18 @@ class NormalProgramHandler:
                             if h1_grounded != h2_grounded:
                                 print(
                                     f"{h1_grounded}__before__{h2_grounded} | {h2_grounded}__before__{h1_grounded}.")
-                                self.__ensure_transitivity(h1, h2, h1_grounded, h2_grounded)
+                                self.__prevent_transitivity(h1, h2, h1_grounded, h2_grounded)
 
-    def __ensure_transitivity(self, h1, h2, h1_grounded, h2_grounded):
+    def __prevent_transitivity(self, h1, h2, h1_grounded, h2_grounded):
+        """
+        Prevents transitive relations between the auxiliary predicates
+        added for the normal programs by printing the rules (19).
+
+        :param h1: (non-ground) head
+        :param h2: (non-ground) head
+        :param h1_grounded: ground head
+        :param h2_grounded: ground head
+        """
         for h3 in self.__heads_complete:
             if h3 != h1 and h3 != h2:
                 h3s_grounded = self.__ground_head(h3)
@@ -34,12 +53,28 @@ class NormalProgramHandler:
                             f":- {h1_grounded}__before__{h2_grounded}, {h2_grounded}__before__{h3_grounded}, {h3_grounded}__before__{h1_grounded}.")
 
     def __ground_head(self, head):
+        """
+        Grounds a head (or an arbitrary predicate) and returns the possible groundings in a format
+        that can be used as part of an auxiliary predicate, e.g., ['a__1_2', 'b__1'].
+        If the given head is already ground, then this ground head is reformatted and returned.
+        :param head: head (or an arbitrary predicate).
+        :return: List of all possible groundings of the head.
+        """
         head_args = re.sub(r'^.*?\(', '', str(head))[:-1].split(',')  # all arguments (incl. duplicates / terms)
         head_vars = list(dict.fromkeys(
             [a for a in head_args if a in self.__all_vars]))  # which have to be grounded per combination
+        heads_grounded = []  # List for ground heads
+
+        # If head does not have any variables, i.e., head is ground, return the head directly
+        if len(head_vars) == 0:
+            head_pred = str(head).split("(", 1)[0] if len(head_args) > 0 else head
+            atoms = "_".join(arg for arg in head_args)
+            heads_grounded.append(f"{head_pred}__{atoms}" if len(head_args) > 0 else f"{head_pred}")
+            return heads_grounded
+
+        # Ground the head using all combinations
         dom_list = [self.__subdoms[v] if v in self.__subdoms else self.__terms for v in head_vars]
         combs = [p for p in itertools.product(*dom_list)]
-        heads_grounded = []
         for c in combs:
             head_pred = str(head).split("(", 1)[0] if len(head_args) > 0 else head
             atoms = "_".join(atom for atom in c)
@@ -47,19 +82,39 @@ class NormalProgramHandler:
         return heads_grounded
 
     def derive_unjustifiability_normal(self, unfound_atom, f_interpretation, f_rem_atoms, head, body_pred):
-        if not self.__is_in_facts(f_interpretation):
-            heads_grounded = self.__ground_head(head)
-            for head_grounded in heads_grounded:
-                unjustifiability_rule = f"{unfound_atom} :- {', '.join(f_rem_atoms)}"
-                unjustifiability_rule += ", " if len(f_rem_atoms) > 0 else ""
-                unjustifiability_rule += self.__reformat_pred(f_interpretation) + "__before__" + head_grounded + "."
-                print(unjustifiability_rule)
+        """
+        Derives the unjustifiability of an interpretation by printing the rule (20).
 
-    def __is_in_facts(self, body_pred):
-        body_pred_name = body_pred.split("(", 1)[0]
+        :param unfound_atom: Atom indicating the unfoundedness of the rule.
+        :param f_interpretation: Ground body literal. It should start with "not " so that the
+        rule can be printed.
+        :param f_rem_atoms: Atoms needed to prevent unfoundedness.
+        :param head: Head of the rule.
+        :param body_pred: One of the body predicates of the rule. It should start with "not "
+        so that the rule can be printed.
+        """
+        if f_interpretation.startswith("not "):
+            if not self.__is_in_facts(f_interpretation):
+                heads_grounded = self.__ground_head(head)
+                for head_grounded in heads_grounded:
+                    unjustifiability_rule = f"{unfound_atom} :- {', '.join(f_rem_atoms)}"
+                    unjustifiability_rule += ", " if len(f_rem_atoms) > 0 else ""
+                    unjustifiability_rule += self.__reformat_pred(f_interpretation) + "__before__" + head_grounded + "."
+                    print(unjustifiability_rule)
+
+    def __is_in_facts(self, atom):
+        """
+        Determines if the given atom is a fact.
+
+        :param atom: An atom.
+        :return: 'True' if the given atom is a fact, 'False' otherwise.
+        """
+        body_pred_name = atom.split("(", 1)[0]
         if body_pred_name.startswith("not "):
             body_pred_name = body_pred_name[4:]
-        body_args = re.sub(r'^.*?\(', "", str(body_pred))[:-1].split(",")  # all arguments (incl. duplicates / terms)
+        if "()" in atom or "(" not in atom:
+            return True
+        body_args = re.sub(r'^.*?\(', "", str(atom))[:-1].split(",")  # all arguments (incl. duplicates / terms)
         body_args_joined = ",".join(body_args)
         if body_pred_name in self.__facts and len(body_args) in self.__facts[body_pred_name] \
                 and body_args_joined in self.__facts[body_pred_name][len(body_args)]:
@@ -67,6 +122,13 @@ class NormalProgramHandler:
         return False
 
     def __reformat_pred(self, pred):
+        """
+        Reformats the predicate so that it can be processed as part of an auxiliary predicate,
+        e.g., 'a(1,2)' to 'a__1_2'.
+
+        :param pred: Predicate to be reformatted.
+        :return: Reformatted predicate.
+        """
         pred_name = pred.split("(", 1)[0]
         pred_args = re.sub(r'^.*?\(', "", str(pred))[:-1].split(",")  # all arguments (incl. duplicates / terms)
         if pred_args == [''] or pred_args == ["not "]:

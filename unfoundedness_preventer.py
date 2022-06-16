@@ -397,7 +397,7 @@ class UnfoundednessPreventer:
                 if self.__normal_program_handler.normal:
                     self.__normal_program_handler.derive_unjustifiability_normal(
                         f"r{g_counter}_unfound({head_arguments})",
-                        str(body_atom), [],
+                        neg + str(body_atom), [],
                         str(node.head), neg + str(body_atom))
 
             self.__add_to_foundedness_check(head_pred, arity, [head_arguments.split(',')], g_counter, range(0, arity))

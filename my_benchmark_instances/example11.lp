@@ -1,5 +1,5 @@
 #program normal.
 a(X,Y) :- b(X), c(Y,Z).
-d :- not d. 
+a(1,2) :- a(1,1).
 b(1).
 c(1,2).
