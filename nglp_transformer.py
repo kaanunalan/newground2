@@ -22,14 +22,14 @@ class NglpDlpTransformer(Transformer):
         self.__ground_guess = ground_guess  # --ground-guess
         self.__ground = ground  # --ground
 
-        self.__rules = False  # If this is rule is under #program rules (reduction applied)
+        self.__rules = False  # If this rule is under #program rules (reduction applied)
         self.__ng = False  # If the program is non-ground
         self.__cur_anon = 0  # Number of anonymous variables in a rule
         self.__cur_var = []  # List of variables occurring in the rule, e.g., ['X', 'Y', 'Z']
         self.__cur_func = []  # List of current predicates (and functions)
         self.__cur_func_sign = []  # Boolean list for signs of literals
         self.__cur_comp = []  # List of comparison operations occurring in the rule
-        self.__f = {}
+        self.__f = {}  # Contains information about foundedness rules
         self.__rule_counter = 0  # Counts the rules in the program
         self.__g_counter = "A"  # Counts the ground rules that are checked for unfoundedness
 
