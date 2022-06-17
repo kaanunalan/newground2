@@ -24,6 +24,6 @@ for path in pathlib.Path(args.input).iterdir():
     if path.is_file():
         options = ["", "--ground", "--ground-guess", "--no-show"]
         for option in options:
-            os.system("python " + program_name + " " + option + " " + path.__str__() + " > "
+            os.system("python3 " + program_name + " " + option + " " + path.__str__() + " > "
                       + args.output + "/" + option + "_" + os.path.basename(path))
 
