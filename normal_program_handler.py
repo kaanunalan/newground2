@@ -102,14 +102,27 @@ class NormalProgramHandler:
             if same_values_counter == same_variables_counter:
                 print(f"proven_{ground_head} :- {', '.join(c)}.")
 
-
     def derive_provability_fact(self, node, cur_var, cur_func, g_counter):
         head = str(node.head)
         if self.__is_in_facts(head):
             print(f"proven_{head}.")
+        if self.__is_interval(head):
+            decomposed_preds = self.__decompose_interval(head)
+            for dp in decomposed_preds:
+                print(f"proven_{dp}.")
         else:
             self.__derive_provability_ground_head(node, cur_func, g_counter)
             self.prove_head(head, cur_var, cur_func)
+
+    def __decompose_interval(self, pred):
+        pred_name = pred.split("(", 1)[0]
+        body_args = re.sub(r'^.*?\(', "", str(pred))[:-1].split(",")  # all arguments (incl. duplicates / terms)
+        interval_args = body_args[0].split("..")
+        interval_args[0] = interval_args[0][1:]
+        interval_args[1] = interval_args[1][:-1]
+        decomposed_pred1 = f"{pred_name}({interval_args[0]})"
+        decomposed_pred2 = f"{pred_name}({interval_args[1]})"
+        return [decomposed_pred1, decomposed_pred2]
 
     def __reset_dict(self):
         self.__provability_dict = {}
@@ -132,6 +145,22 @@ class NormalProgramHandler:
                 and body_args_joined in self.__facts[pred_name][len(body_args)]:
             return True
         return
+
+    def __is_interval(self, pred):
+        """
+        Checks if the given predicate has an interval argument.
+
+        :param pred: A predicate.
+        :return: 'True' if the given arguments represent an interval, 'False' otherwise.
+        """
+        pred_name = pred.split("(", 1)[0]
+        args = re.sub(r'^.*?\(', "", str(pred))[:-1].split(",")  # all arguments (incl. duplicates / terms)
+        if len(args) == 1:
+            interval_args = args[0].split("..")
+            if len(interval_args) == 2 and interval_args[0].startswith("(") and interval_args[1].endswith(")"):
+                return True
+        return False
+
 
     def __ground_head(self, head, cur_var):
         head_args = re.sub(r'^.*?\(', '', str(head))[:-1].split(',')  # all arguments (incl. duplicates / terms)

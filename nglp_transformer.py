@@ -54,7 +54,7 @@ class NglpDlpTransformer(Transformer):
         :param node: Rule in the program.
         :return: Node of the AST.
         """
-        # if not part of #program rules
+        # if not part of #program rules and #program normal
         if not self.__rules and not self.__normal_program_handler.normal:
             self.__reset_after_rule()
             if not self.__ground:
