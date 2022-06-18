@@ -53,10 +53,10 @@ class TermTransformer(Transformer):
                 interval_args = arguments[0].split("..")
                 interval_args[0] = interval_args[0][1:]
                 interval_args[1] = interval_args[1][:-1]
-                self.__add_to_facts(pred, arity, [interval_args[0]])
-                self.__add_to_facts(pred, arity, [interval_args[1]])
+                self.__add_to_facts(pred, [interval_args[0]])
+                self.__add_to_facts(pred, [interval_args[1]])
             else:
-                self.__add_to_facts(pred, arity, arguments)
+                self.__add_to_facts(pred, arguments)
         return node
 
     def __is_interval(self, arguments):
