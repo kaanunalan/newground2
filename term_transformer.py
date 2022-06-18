@@ -48,15 +48,48 @@ class TermTransformer(Transformer):
                     self.__ng_heads[pred].add(arity)
         # Add to facts if body length is zero
         elif node.body.__len__() == 0:
-            arguments = ",".join(arguments)
-            if pred not in self.__facts:
-                self.__facts[pred] = {}
-                self.__facts[pred][arity] = {arguments}
-            elif arity not in self.__facts[pred]:
-                self.__facts[pred][arity] = {arguments}
+            # Check if head arguments represent an interval
+            if self.__is_interval(arguments):
+                interval_args = arguments[0].split("..")
+                interval_args[0] = interval_args[0][1:]
+                interval_args[1] = interval_args[1][:-1]
+                self.__add_to_facts(pred, arity, [interval_args[0]])
+                self.__add_to_facts(pred, arity, [interval_args[1]])
             else:
-                self.__facts[pred][arity].add(arguments)
+                self.__add_to_facts(pred, arity, arguments)
         return node
+
+    def __is_interval(self, arguments):
+        """
+        Checks if the given arguments of the predicate is an interval.
+
+        :param arguments: List of arguments of the predicate.
+        :return: 'True' if the given arguments represent an interval, 'False' otherwise.
+        """
+        if len(arguments) == 1:
+            interval_args = arguments[0].split("..")
+            if len(interval_args) == 2 and interval_args[0].startswith("(") and interval_args[1].endswith(")"):
+                return True
+        return False
+
+    def __add_to_facts(self, pred, arguments):
+        """
+        Adds the given predicate with the given list of arguments to the facts.
+
+        :param pred: A predicate.
+        :param arguments: List of arguments of the predicate.
+        """
+        # Get arity (length of arguments) of predicate
+        arity = len(arguments)
+
+        arguments = ",".join(arguments)
+        if pred not in self.__facts:
+            self.__facts[pred] = {}
+            self.__facts[pred][arity] = {arguments}
+        elif arity not in self.__facts[pred]:
+            self.__facts[pred][arity] = {arguments}
+        else:
+            self.__facts[pred][arity].add(arguments)
 
     def visit_Function(self, node):
         """

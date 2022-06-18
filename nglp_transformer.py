@@ -62,7 +62,7 @@ class NglpDlpTransformer(Transformer):
             return node
 
         if self.__normal_program_handler.normal:
-            if node.body.__len__() > 0:
+            if node.body.__len__() > 0 and str(node.head) != "#false":
                 self.__normal_program_handler.heads_complete.append(str(node.head))
 
         # check if AST is non-ground
