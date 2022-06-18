@@ -209,7 +209,7 @@ class NglpDlpTransformer(Transformer):
         else:
             # already proven if the ground head is a fact
             if self.__normal_program_handler.normal:
-                self.__normal_program_handler.derive_provability_fact(node, self.__cur_var, self.__cur_func, self.__g_counter)
+                self.__normal_program_handler.derive_provability_ground_head(node, self.__cur_var, self.__cur_func, self.__g_counter)
             # found-check for ground-rules (if needed) (pred, arity, combinations, rule, indices)
             self.__g_counter = unfoundedness_preventer.check_found_ground_rules(node, self.__ng_heads, self.__g_counter)
             # print rule as it is

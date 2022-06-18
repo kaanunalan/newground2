@@ -26,4 +26,3 @@ for path in pathlib.Path(args.input).iterdir():
         for option in options:
             os.system("python3 " + program_name + " " + option + " " + path.__str__() + " > "
                       + args.output + "/" + option + "_" + os.path.basename(path))
-

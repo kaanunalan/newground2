@@ -18,15 +18,33 @@ class NormalProgramHandler:
 
     def ensure_justifiability_normal_programs(self, f_interpretation, f_rem_atoms, rule_counter, body_literal,
                                               cur_func):
+        """
+        Ensures the justifiability for normal programs by deriving their provability.
+
+        :param f_interpretation: Ground body literal. Positive body literals start with "not ".
+        :param f_rem_atoms: Atoms needed to prevent unfoundedness.
+        :param rule_counter: Counts the rules in the program.
+        :param body_literal: (Non-ground) body literal.
+        :param cur_func: Predicates of the current rule.
+        """
         if f_interpretation.startswith("not "):
-            self.__ensure_provability_positive_body_atom(f_interpretation, f_rem_atoms,
+            self.__derive_provability_positive_body_atom(f_interpretation, f_rem_atoms,
                                                          rule_counter, body_literal, cur_func)
         else:
-            self.__ensure_provability_negative_body_atom(f_interpretation, f_rem_atoms,
+            self.__derive_provability_negative_body_atom(f_interpretation, f_rem_atoms,
                                                          rule_counter, body_literal, cur_func)
 
-    def __ensure_provability_positive_body_atom(self, f_interpretation, f_rem_atoms,
+    def __derive_provability_positive_body_atom(self, f_interpretation, f_rem_atoms,
                                                 rule_counter, body_literal, cur_func):
+        """
+        Derives the provability of a positive body atom.
+
+        :param f_interpretation: Ground body literal. It starts with "not ".
+        :param f_rem_atoms: Atoms needed to prevent unfoundedness.
+        :param rule_counter: Counts the rules in the program.
+        :param body_literal: (Non-ground) body literal.
+        :param cur_func: Predicates of the current rule.
+        """
         f_interpretation = f_interpretation[4:]
         pos_body_ok = f"r{rule_counter}_posbody{cur_func.index(body_literal)}_ok"
         joined_args = self.__get_joined_arguments(f_interpretation)
@@ -38,8 +56,17 @@ class NormalProgramHandler:
         print(provability_pos_atom_rule)
         self.__add_to_provability_list(cur_func.index(body_literal), pos_body_ok)
 
-    def __ensure_provability_negative_body_atom(self, f_interpretation, f_rem_atoms,
+    def __derive_provability_negative_body_atom(self, f_interpretation, f_rem_atoms,
                                                 rule_counter, body_literal, cur_func):
+        """
+        Derives the provability of a negative body atom.
+
+        :param f_interpretation: Ground body literal. It starts with "not ".
+        :param f_rem_atoms: Atoms needed to prevent unfoundedness.
+        :param rule_counter: Counts the rules in the program.
+        :param body_literal: (Non-ground) body literal.
+        :param cur_func: Predicates of the current rule.
+        """
         f_interpretation = "not " + f_interpretation
         neg_body_ok = f"r{rule_counter}_negbody{cur_func.index(body_literal)}_ok"
         joined_args = self.__get_joined_arguments(f_interpretation)
@@ -52,11 +79,24 @@ class NormalProgramHandler:
         self.__add_to_provability_list(cur_func.index(body_literal), neg_body_ok)
 
     def __add_to_provability_list(self, body_index, body_ok):
+        """
+        Saves the rule indicating that the body is derived.
+
+        :param body_index: Index indicating which literal in the rule the body is.
+        :param body_ok: Rule showing that the body is derived.
+        """
         if body_index not in self.__provability_dict:
             self.__provability_dict[body_index] = []
         self.__provability_dict[body_index].append(body_ok)
 
     def prove_head(self, head, cur_var, cur_func):
+        """
+        Proves the head of the rule.
+
+        :param head: Rule head.
+        :param cur_var: List of variables occurring in the rule, e.g., ['X', 'Y', 'Z'].
+        :param cur_func: List of current predicates.
+        """
         grounded_heads = self.__ground_head(head, cur_var)
         for h in grounded_heads:
             self.__ensure_provability_head(h)
@@ -64,9 +104,22 @@ class NormalProgramHandler:
         self.__reset_dict()
 
     def __ensure_provability_head(self, head):
+        """
+        Ensures that the head is provable.
+
+        :param head: Rule head.
+        """
         print(f":- {head}, not proven_{head}.")
 
     def __derive_provability_head(self, ground_head, non_ground_head, cur_var, cur_func):
+        """
+        Derives that the rule head is provable.
+
+        :param ground_head: Ground head.
+        :param non_ground_head: Non-ground head.
+        :param cur_var: List of variables occurring in the rule, e.g., ['X', 'Y', 'Z'].
+        :param cur_func: List of current predicates.
+        """
         # Get all combinations of values for provable bodies
         provable_combs = list(itertools.product(*(self.__provability_dict[index] for index in self.__provability_dict)))
         #  For each combination to prove the head
@@ -102,7 +155,15 @@ class NormalProgramHandler:
             if same_values_counter == same_variables_counter:
                 print(f"proven_{ground_head} :- {', '.join(c)}.")
 
-    def derive_provability_fact(self, node, cur_var, cur_func, g_counter):
+    def derive_provability_ground_head(self, node, cur_var, cur_func, g_counter):
+        """
+        Derives that the ground head, which may also be a fact, is provable.
+
+        :param node: Rule node of the syntax tree.
+        :param cur_var: List of variables occurring in the rule, e.g., ['X', 'Y', 'Z'].
+        :param cur_func: List of current predicates.
+        :param g_counter: Counts the ground rules that are checked for unfoundedness.
+        """
         head = str(node.head)
         if self.__is_in_facts(head):
             print(f"proven_{head}.")
@@ -111,10 +172,16 @@ class NormalProgramHandler:
             for dp in decomposed_preds:
                 print(f"proven_{dp}.")
         else:
-            self.__derive_provability_ground_head(node, cur_func, g_counter)
+            self.__derive_provability_ground_head_no_fact(node, cur_func, g_counter)
             self.prove_head(head, cur_var, cur_func)
 
     def __decompose_interval(self, pred):
+        """
+        Decomposes an interval into its arguments.
+
+        :param pred: Predicate with interval argument.
+        :return: List of predicates with the decomposed interval.
+        """
         pred_name = pred.split("(", 1)[0]
         body_args = re.sub(r'^.*?\(', "", str(pred))[:-1].split(",")  # all arguments (incl. duplicates / terms)
         interval_args = body_args[0].split("..")
@@ -125,9 +192,17 @@ class NormalProgramHandler:
         return [decomposed_pred1, decomposed_pred2]
 
     def __reset_dict(self):
+        """
+        Resets the proved bodies.
+        """
         self.__provability_dict = {}
 
     def __get_joined_arguments(self, pred):
+        """
+        Gives the arguments of a predicate as a string joined by commas, e.g., "1,2,3".
+        :param pred: A predicate.
+        :return: String of arguments.
+        """
         # Return an empty string for atoms with arity 0
         if "()" in pred or "(" not in pred:
             return ""
@@ -136,6 +211,12 @@ class NormalProgramHandler:
         return ",".join(arg for arg in pred_args)
 
     def __is_in_facts(self, pred):
+        """
+        Checks if the given predicate is a fact.
+
+        :param pred: A predicate.
+        :return: 'True' if the given predicate is a fact, 'False' otherwise.
+        """
         pred_name = pred.split("(", 1)[0]
         if pred_name.startswith("not "):
             pred_name = pred_name[4:]
@@ -163,6 +244,13 @@ class NormalProgramHandler:
 
 
     def __ground_head(self, head, cur_var):
+        """
+        Grounds a (non-ground) head.
+
+        :param head: Rule head.
+        :param cur_var: List of variables occurring in the rule, e.g., ['X', 'Y', 'Z'].
+        :return: List of ground combinations of the head.
+        """
         head_args = re.sub(r'^.*?\(', '', str(head))[:-1].split(',')  # all arguments (incl. duplicates / terms)
         head_vars = list(dict.fromkeys(
             [a for a in head_args if a in cur_var]))  # which have to be grounded per combination
@@ -177,7 +265,14 @@ class NormalProgramHandler:
             heads_grounded.append(f"{head_pred}({atoms})" if len(c) > 0 else f"{head_pred}")
         return heads_grounded
 
-    def __derive_provability_ground_head(self, node, cur_func, g_counter):
+    def __derive_provability_ground_head_no_fact(self, node, cur_func, g_counter):
+        """
+        Derives that the ground head, which is not a fact, is provable.
+
+        :param node: Rule node of the syntax tree.
+        :param cur_func: List of current predicates.
+        :param g_counter: Counts the ground rules that are checked for unfoundedness.
+        """
         for index, body_pred in enumerate(cur_func):
             # Ensure that the predicate is not the head
             if index != 0:
