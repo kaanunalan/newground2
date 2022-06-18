@@ -167,7 +167,7 @@ class NormalProgramHandler:
         head = str(node.head)
         if self.__is_in_facts(head):
             print(f"proven_{head}.")
-        if self.__is_interval(head):
+        elif self.__is_interval(head):
             decomposed_preds = self.__decompose_interval(head)
             for dp in decomposed_preds:
                 print(f"proven_{dp}.")
@@ -187,9 +187,10 @@ class NormalProgramHandler:
         interval_args = body_args[0].split("..")
         interval_args[0] = interval_args[0][1:]
         interval_args[1] = interval_args[1][:-1]
-        decomposed_pred1 = f"{pred_name}({interval_args[0]})"
-        decomposed_pred2 = f"{pred_name}({interval_args[1]})"
-        return [decomposed_pred1, decomposed_pred2]
+        decomposed_preds = []
+        for i in range(int(interval_args[0]), int(interval_args[1])+1):
+            decomposed_preds.append(f"{pred_name}({i})")
+        return decomposed_preds
 
     def __reset_dict(self):
         """
@@ -234,10 +235,9 @@ class NormalProgramHandler:
         :param pred: A predicate.
         :return: 'True' if the given arguments represent an interval, 'False' otherwise.
         """
-        pred_name = pred.split("(", 1)[0]
         args = re.sub(r'^.*?\(', "", str(pred))[:-1].split(",")  # all arguments (incl. duplicates / terms)
-        if len(args) == 1:
-            interval_args = args[0].split("..")
+        for arg in args:
+            interval_args = arg.split("..")
             if len(interval_args) == 2 and interval_args[0].startswith("(") and interval_args[1].endswith(")"):
                 return True
         return False

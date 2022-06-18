@@ -52,10 +52,10 @@ class TermTransformer(Transformer):
                 interval_args = arguments[0].split("..")
                 interval_args[0] = interval_args[0][1:]
                 interval_args[1] = interval_args[1][:-1]
-                self.__add_to_facts(pred, [interval_args[0]])
-                self.__add_to_facts(pred, [interval_args[1]])
+                for i in range(int(interval_args[0]), int(interval_args[1])+1):
+                    self.__add_to_facts(pred, arity, str(i))
             else:
-                self.__add_to_facts(pred, arguments)
+                self.__add_to_facts(pred, arity, arguments)
         return node
 
     def __is_interval(self, arguments):
@@ -65,22 +65,20 @@ class TermTransformer(Transformer):
         :param arguments: List of arguments of the predicate.
         :return: 'True' if the given arguments represent an interval, 'False' otherwise.
         """
-        if len(arguments) == 1:
-            interval_args = arguments[0].split("..")
+        for arg in arguments:
+            interval_args = arg.split("..")
             if len(interval_args) == 2 and interval_args[0].startswith("(") and interval_args[1].endswith(")"):
                 return True
         return False
 
-    def __add_to_facts(self, pred, arguments):
+    def __add_to_facts(self, pred, arity, arguments):
         """
         Adds the given predicate with the given list of arguments to the facts.
 
         :param pred: A predicate.
+        :param arity: Arity of the predicate.
         :param arguments: List of arguments of the predicate.
         """
-        # Get arity (length of arguments) of predicate
-        arity = len(arguments)
-
         arguments = ",".join(arguments)
         if pred not in self.__facts:
             self.__facts[pred] = {}
