@@ -14,7 +14,7 @@ class TermTransformer(Transformer):
         self.__terms = []  # Terms occurring in the program, e.g., ['1', '2']
         self.__subdoms = subdoms  # Domains of each variable separately, e.g.,  {'Y': ['1', '2'], 'Z': ['1', '2']}
         self.__facts = {}  # Facts, arities and arguments, e.g., {'_dom_X': {1: {'1'}}, '_dom_Y': {1: {'(1..2)'}}}
-        self.__ng_heads = {}  # Rule heads with their arities, e.g., {'d': {1}, 'a': {2}}
+        self.__heads = {}  # Rule heads with their arities, e.g., {'d': {1}, 'a': {2}}
         self.__ng = False  # If the program is non-ground
         self.__shows = {}  # Predicates (and functions) with their arities, e.g., {'a': {2}, 'f': {1}}
         self.__current_f = None  # Current predicate (or function) name
@@ -23,7 +23,7 @@ class TermTransformer(Transformer):
 
     def visit_Rule(self, node):
         """
-        Visits rules of the program and saves non-ground head predicates with their arities
+        Visits rules of the program and saves predicates with their arities
         or saves facts with their arities and arguments.
 
         :param node: Rule in the program.
@@ -37,15 +37,15 @@ class TermTransformer(Transformer):
         # Get arity (length of arguments) of predicate
         arity = len(arguments)
 
-        # If program non-ground, save pred and arity (except #false) for later use
-        if self.__ng:
+        # Save pred and arity (except #false and facts) for later use
+        if node.body.__len__() != 0:
             self.__ng = False
             if str(node.head) != "#false":
                 # save pred and arity for later use
-                if pred not in self.__ng_heads:
-                    self.__ng_heads[pred] = {arity}
+                if pred not in self.__heads:
+                    self.__heads[pred] = {arity}
                 else:
-                    self.__ng_heads[pred].add(arity)
+                    self.__heads[pred].add(arity)
         # Add to facts if body length is zero
         elif node.body.__len__() == 0:
             # Check if head arguments represent an interval
@@ -126,10 +126,11 @@ class TermTransformer(Transformer):
         :param node: Interval in the program.
         :return Node of the AST.
         """
-        for i in range(int(str(node.left)), int(str(node.right)) + 1):
-            if str(i) not in self.__terms:
-                self.__terms.append(str(i))
-            add_to_subdom(self.__subdoms, self.__current_f, str(i))
+        if str.isdigit(str(node.left)) and str.isdigit(str(node.right)):
+            for i in range(int(str(node.left)), int(str(node.right)) + 1):
+                if str(i) not in self.__terms:
+                    self.__terms.append(str(i))
+                add_to_subdom(self.__subdoms, self.__current_f, str(i))
         return node
 
     def visit_SymbolicTerm(self, node):
@@ -165,8 +166,8 @@ class TermTransformer(Transformer):
     def __get_facts(self):
         return self.__facts
 
-    def __get_ng_heads(self):
-        return self.__ng_heads
+    def __get_heads(self):
+        return self.__heads
 
     def __get_shows(self):
         return self.__shows
@@ -177,6 +178,6 @@ class TermTransformer(Transformer):
     terms = property(__get_terms)
     subdoms = property(__get_subdoms)
     facts = property(__get_facts)
-    ng_heads = property(__get_ng_heads)
+    heads = property(__get_heads)
     shows = property(__get_shows)
     all_vars = property(__get_all_vars)

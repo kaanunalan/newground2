@@ -13,11 +13,11 @@ from unfoundedness_preventer import UnfoundednessPreventer
 
 
 class NglpDlpTransformer(Transformer):
-    def __init__(self, bld, terms, facts, ng_heads, shows, subdoms, ground_guess, ground, all_vars):
+    def __init__(self, bld, terms, facts, heads, shows, subdoms, ground_guess, ground, all_vars):
         self.__bld = bld  # Object to build non-ground programs
         self.__terms = terms  # Terms occurring in the program, e.g., ['1', '2']
         self.__facts = facts  # Facts, arities and arguments, e.g., {'_dom_X': {1: {'1'}}, '_dom_Y': {1: {'(1..2)'}}}
-        self.__ng_heads = ng_heads  # Rule heads with their arities, e.g., {'d': {1}, 'a': {2}}
+        self.__heads = heads  # Rule heads with their arities, e.g., {'d': {1}, 'a': {2}}
         self.__shows = shows  # Predicates (and functions) with their arities, e.g., {'a': {2}, 'f': {1}}
         self.__subdoms = subdoms  # Domains of each variable separately, e.g.,  {'Y': ['1', '2'], 'Z': ['1', '2']}
         self.__ground_guess = ground_guess  # --ground-guess
@@ -210,7 +210,7 @@ class NglpDlpTransformer(Transformer):
                 unfoundedness_preventer.prevent_unfoundedness(head, self.__rule_counter)
         else:
             # found-check for ground-rules (if needed) (pred, arity, combinations, rule, indices)
-            self.__g_counter = unfoundedness_preventer.check_found_ground_rules(node, self.__ng_heads, self.__g_counter)
+            self.__g_counter = unfoundedness_preventer.check_found_ground_rules(node, self.__heads, self.__g_counter)
             # print rule as it is
             self.__output_node_format_conform(node)
 

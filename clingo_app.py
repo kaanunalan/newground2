@@ -46,7 +46,7 @@ class ClingoApp(Application):
 
         with ProgramBuilder(ctl) as bld:
             transformer = NglpDlpTransformer(bld, term_transformer.terms, term_transformer.facts,
-                                             term_transformer.ng_heads, term_transformer.shows,
+                                             term_transformer.heads, term_transformer.shows,
                                              term_transformer.subdoms, self.__ground_guess,
                                              self.__ground, term_transformer.all_vars)
 

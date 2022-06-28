@@ -255,9 +255,9 @@ class UnfoundednessPreventer:
 
                         # Ensure justifiability of normal programs if #program normal
                         if self.__normal_program_handler.normal:
-                            body_literal = ("" if self.__cur_func_sign[self.__cur_func.index(f)] else "not ") + str(f)
+                            body_pred = str(f)
                             self.__normal_program_handler.derive_unjustifiability_normal(
-                                unfound_atom, f_interpretation, f_rem_atoms, str(head))
+                                unfound_atom, f_interpretation, f_rem_atoms, str(head), f_vars_needed, body_pred)
 
                         # predicate arity combinations rule indices
                         self.__add_to_foundedness_check(head.name, h_args_len, combs_covered,
@@ -368,21 +368,21 @@ class UnfoundednessPreventer:
 
         return interpretation, interpretation_incomplete, combs_covered, index_vars
 
-    def check_found_ground_rules(self, node, ng_heads, g_counter):
+    def check_found_ground_rules(self, node, heads, g_counter):
         """
         Checks foundedness of ground rules if needed.
 
         :param node: Node of the rule.
-        :param ng_heads: Rule heads with their arities, e.g., {'d': {1}, 'a': {2}}.
+        :param heads: Rule heads with their arities, e.g., {'d': {1}, 'a': {2}}.
         :param g_counter: Counts the ground rules that are checked for unfoundedness.
         :return: Next character for g_counter.
         """
         head_pred = str(node.head).split('(', 1)[0]
-        head_arguments_list = re.sub(r'^.*?\(', '', str(node.head))[:-1].split(',')
+        head_arguments_list = re.sub(r'^.*?\(', "", str(node.head))[:-1].split(",")
         arity = len(head_arguments_list)
         head_arguments = ','.join(head_arguments_list)
         # If such a (non-ground) head predicate with the given arity exists but there is no such fact
-        if head_pred in ng_heads and arity in ng_heads[head_pred] \
+        if head_pred in heads and arity in heads[head_pred] \
                 and not (head_pred in self.__facts and arity in self.__facts[head_pred]
                          and head_arguments in self.__facts[head_pred][arity]):
             for body_atom in node.body:
@@ -398,7 +398,7 @@ class UnfoundednessPreventer:
                     self.__normal_program_handler.derive_unjustifiability_normal(
                         f"r{g_counter}_unfound({head_arguments})",
                         neg + str(body_atom), [],
-                        str(node.head))
+                        str(node.head), [], str(body_atom))
 
             self.__add_to_foundedness_check(head_pred, arity, [head_arguments.split(',')], g_counter, range(0, arity))
             return chr(ord(g_counter) + 1)
