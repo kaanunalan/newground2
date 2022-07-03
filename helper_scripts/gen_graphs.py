@@ -1,3 +1,7 @@
+"""
+Generates graphs of given size and density.
+"""
+
 import sys
 import random
 

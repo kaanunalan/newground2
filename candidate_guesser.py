@@ -9,7 +9,7 @@ import re
 class CandidateGuesser:
     def guess_candidates(self, head, terms, subdoms, ground_guess, cur_var):
         """
-        Prints rules (1), which are responsible for guessing answer set candidates.
+        Prints rules that are responsible for guessing answer set candidates.
 
         :param head: Head of the rule.
         :param terms: Terms occurring in the program, e.g., ['1', '2'].

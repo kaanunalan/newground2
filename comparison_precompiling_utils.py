@@ -48,4 +48,4 @@ class ComparisonPrecompilingUtils:
         elif comp is int(clingo.ast.ComparisonOperator.LessThan):
             return c1 < c2
         else:
-            assert (False)  # not implemented
+            assert False  # not implemented

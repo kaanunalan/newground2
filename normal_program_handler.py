@@ -18,8 +18,7 @@ class NormalProgramHandler:
     def add_auxiliary_predicates(self):
         """
         Adds auxiliary predicates modeling the precedence in the order of derivation
-        and corresponding constraints taking care of transitivity by printing the rules
-        (18) and (19).
+        and corresponding constraints taking care of transitivity.
         """
         for count1, h1 in enumerate(self.__heads_complete):
             for count2, h2 in enumerate(self.__heads_complete):
@@ -36,7 +35,7 @@ class NormalProgramHandler:
     def __prevent_transitivity(self, count1, count2, h1_grounded, h2_grounded):
         """
         Prevents transitive relations between the auxiliary predicates
-        added for the normal programs by printing the rules (19).
+        added for the normal programs.
 
         :param count1: Number of the rule containing the first head.
         :param count2: Number of the rule containing the second head.
@@ -57,7 +56,8 @@ class NormalProgramHandler:
         Grounds a head (or an arbitrary predicate) and returns the possible groundings in raw and joined format, e.g.,
         [['1', '2'], ['1']] and ['1,2', '1'], and in a format that can be used as part of an auxiliary predicate, e.g.,
         ['a__1_2', 'b__1']. If the given head is already ground, then this ground head is returned.
-        :param head: head (or an arbitrary predicate).
+
+        :param head: Head (or an arbitrary predicate).
         :return: Tuple of lists of all possible groundings of the head in three formats: raw, joined and suitable
         for auxiliary predicates.
         """
@@ -122,6 +122,7 @@ class NormalProgramHandler:
         """
         Determines if this combination of body and head atom is possible by checking the variable
         dependencies.
+
         :param f_interpretation: Ground body literal. It should start with "not " so that the
         rule can be printed.
         :param head: Head of the rule.
