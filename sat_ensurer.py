@@ -30,7 +30,7 @@ class SatEnsurer:
 
     def guess_sat_saturate_assignments(self):
         """
-        Prints rules (2) and (6) which are responsible for guessing and saturating assignments
+        Prints rules that are responsible for guessing and saturating assignments
         of variables to domain values.
         """
         # MOD
@@ -60,7 +60,7 @@ class SatEnsurer:
 
     def ensure_sat(self, head):
         """
-        Prints rules (3) and (4) which are responsible for ensuring satisfiability.
+        Prints rules that are responsible for ensuring satisfiability.
 
         :param head: Head of the rule.
         """
@@ -72,7 +72,7 @@ class SatEnsurer:
 
     def __ensure_sat_cmp(self, covered_cmp):
         """
-        Prints rules (3) and (4) for comparison operators in order to achieve more compact programs.
+        Prints rules, which ensure satisfiability of rules, for comparison operators in order to achieve more compact programs.
 
         :param covered_cmp: Dictionary of covered tuple subsets (combinations) for a given variable set.
         """
@@ -109,7 +109,7 @@ class SatEnsurer:
 
     def __ensure_sat_pred(self, head, covered_cmp):
         """
-        Prints rules (3) and (4) for normal predicates.
+        Prints rules, which ensure satisfiability of rules, for predicates.
 
         :param head: Head of the rule.
         """
@@ -151,7 +151,7 @@ class SatEnsurer:
 
     def check_if_all_sat(self, bld):
         """
-        Prints rules (5) and (7), which are responsible for checking if all rules
+        Prints rules, which are responsible for checking if all rules
         of the program are satisfiable.
         """
         if self.__rule_counter > 0:

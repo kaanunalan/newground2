@@ -16,8 +16,8 @@ class InstsManager:
 
     def manage_insts(self):
         """
-        This method manages the subprogram '#program insts.
-        The subprogram '#program insts.' can be used for instantiating the program. Without explicit domains given the
+        This method manages the subprogram '#program insts.'.
+        The subprogram '#program insts.' can be used for instantiating the program. Without explicit domains given, the
         reduction uses the complete set of terms to fill the variables in the grounding process. This process can be
         reduced by giving a domain for each variable, e.g. '_dom_X(1..5).', or by '_dom_X(X) :- a(X,_).' in the
         instantiating part of the program. This information is then processed automatically and considered in the

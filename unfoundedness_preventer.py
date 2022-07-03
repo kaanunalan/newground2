@@ -26,7 +26,7 @@ class UnfoundednessPreventer:
 
     def prevent_unfoundedness(self, head, rule_counter):
         """
-        Prints the rules (8), (14) and (15) to prevent unfoundedness.
+        Prints the rules that prevent unfoundedness.
 
         :param head: Head of the rule.
         :param rule_counter: Counts the rules in the program.
@@ -114,7 +114,7 @@ class UnfoundednessPreventer:
 
     def __derive_unjustifiability_comp(self, covered_cmp, head, h_args, h_vars, h_args_len, rem, g, g_r, rule_counter):
         """
-        Derives unjustifiability for comparison operators by printing the rules (14) and (15)
+        Derives unjustifiability for comparison operators
         in order to achieve more compact programs.
 
         :param covered_cmp: Dictionary of covered tuple subsets (combinations) of comparisons for a given variable set.
@@ -183,7 +183,7 @@ class UnfoundednessPreventer:
 
     def __derive_unjustifiability_pred(self, covered_cmp, head, h_args, h_vars, h_args_len, rem, g, g_r, rule_counter):
         """
-        Derives unjustifiability for body predicates by printing the rules (14) and (15).
+        Derives unjustifiability for body predicates.
 
         :param covered_cmp: Dictionary of covered tuple subsets (combinations) of comparisons for a given variable set.
         :param head: Head of the rule.
@@ -397,7 +397,7 @@ class UnfoundednessPreventer:
 
     def prevent_unfounded_rules(self, rule_counter):
         """
-        Prints rules (16), which prevent unfounded results.
+        Prints rules that prevent unfounded results.
 
         :param rule_counter: Counts the rules in the program.
         """

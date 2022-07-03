@@ -201,6 +201,7 @@ class NormalProgramHandler:
     def __get_joined_arguments(self, pred):
         """
         Gives the arguments of a predicate as a string joined by commas, e.g., "1,2,3".
+
         :param pred: A predicate.
         :return: String of arguments.
         """
