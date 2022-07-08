@@ -1,0 +1,332 @@
+runsolver version 3.4.0 (svn: 3018) Copyright (C) 2010-2013 Olivier ROUSSEL
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+command line: /home/kunalan/runsolver/src/runsolver -C 1200 -W 1200 --vsize-limit 16384 -w results_nprc/nprc_gringo_random_200_50_watch.log --var results_nprc/nprc_gringo_random_200_50_values.log gringo --verbose=2 --output text ../instances/benchmark_instances/encodings/nprc_gringo.lp ../instances/benchmark_instances/graphs/random_200_50.lp 
+
+running on 8 cores: 0-7
+
+Enforcing CPUTime limit (soft limit, will send SIGTERM then SIGKILL): 1200 seconds
+Enforcing CPUTime limit (hard limit, will send SIGXCPU): 1230 seconds
+Enforcing wall clock limit (soft limit, will send SIGTERM then SIGKILL): 1200 seconds
+Enforcing VSIZE limit (soft limit, will send SIGTERM then SIGKILL): 16777216 KiB
+Enforcing VSIZE limit (hard limit, stack expansion will fail with SIGSEGV, brk() and mmap() will return ENOMEM): 16828416 KiB
+Linux 4.4.0-22000-Microsoft
+Current StackSize limit: 8192 KiB
+solver pid=854, runsolver pid=852
+
+
+[startup+0.10033 s]*
+/proc/loadavg: 0.52 0.58 0.59 2/13 855
+/proc/meminfo: memFree=12166872/16587228 swapFree=50163192/50331648
+Current children cumulated CPU time: 0 s
+Current children cumulated vsize: 0 KiB
+Current children cumulated memory: 0 KiB
+
+[startup+0.201439 s]*
+/proc/loadavg: 0.52 0.58 0.59 3/13 855
+/proc/meminfo: memFree=12166820/16587228 swapFree=50163192/50331648
+Current children cumulated CPU time: 0 s
+Current children cumulated vsize: 0 KiB
+Current children cumulated memory: 0 KiB
+
+[startup+0.301311 s]*
+/proc/loadavg: 0.52 0.58 0.59 3/13 855
+/proc/meminfo: memFree=12166820/16587228 swapFree=50163192/50331648
+Current children cumulated CPU time: 0 s
+Current children cumulated vsize: 0 KiB
+Current children cumulated memory: 0 KiB
+
+[startup+0.700267 s]
+/proc/loadavg: 0.52 0.58 0.59 2/13 855
+/proc/meminfo: memFree=12166820/16587228 swapFree=50163192/50331648
+Current children cumulated CPU time: 0 s
+Current children cumulated vsize: 0 KiB
+Current children cumulated memory: 0 KiB
+
+[startup+1.50048 s]
+/proc/loadavg: 0.52 0.58 0.59 2/13 855
+/proc/meminfo: memFree=12166644/16587228 swapFree=50163192/50331648
+Current children cumulated CPU time: 0 s
+Current children cumulated vsize: 0 KiB
+Current children cumulated memory: 0 KiB
+
+[startup+3.10107 s]
+/proc/loadavg: 0.52 0.58 0.59 3/13 855
+/proc/meminfo: memFree=12168016/16587228 swapFree=50163192/50331648
+Current children cumulated CPU time: 0 s
+Current children cumulated vsize: 0 KiB
+Current children cumulated memory: 0 KiB
+heavy processes:
+
+[startup+6.30013 s]
+/proc/loadavg: 0.52 0.58 0.59 3/13 855
+/proc/meminfo: memFree=12168096/16587228 swapFree=50163192/50331648
+Current children cumulated CPU time: 0 s
+Current children cumulated vsize: 0 KiB
+Current children cumulated memory: 0 KiB
+heavy processes:
+
+[startup+12.7004 s]
+/proc/loadavg: 0.52 0.58 0.59 2/13 855
+/proc/meminfo: memFree=12168696/16587228 swapFree=50163192/50331648
+Current children cumulated CPU time: 0 s
+Current children cumulated vsize: 0 KiB
+Current children cumulated memory: 0 KiB
+heavy processes:
+
+[startup+25.5005 s]
+/proc/loadavg: 0.52 0.58 0.59 3/13 855
+/proc/meminfo: memFree=12176272/16587228 swapFree=50163192/50331648
+Current children cumulated CPU time: 0 s
+Current children cumulated vsize: 0 KiB
+Current children cumulated memory: 0 KiB
+heavy processes:
+
+[startup+51.1012 s]
+/proc/loadavg: 0.52 0.58 0.59 3/13 855
+/proc/meminfo: memFree=12162720/16587228 swapFree=50163196/50331648
+Current children cumulated CPU time: 0 s
+Current children cumulated vsize: 0 KiB
+Current children cumulated memory: 0 KiB
+heavy processes:
+
+[startup+102.3 s]
+/proc/loadavg: 0.52 0.58 0.59 3/13 855
+/proc/meminfo: memFree=12196096/16587228 swapFree=50163196/50331648
+Current children cumulated CPU time: 0 s
+Current children cumulated vsize: 0 KiB
+Current children cumulated memory: 0 KiB
+heavy processes:
+
+[startup+162.3 s]
+/proc/loadavg: 0.52 0.58 0.59 3/13 855
+/proc/meminfo: memFree=12203476/16587228 swapFree=50163196/50331648
+Current children cumulated CPU time: 0 s
+Current children cumulated vsize: 0 KiB
+Current children cumulated memory: 0 KiB
+heavy processes:
+
+[startup+222.301 s]
+/proc/loadavg: 0.52 0.58 0.59 2/13 855
+/proc/meminfo: memFree=12223468/16587228 swapFree=50163212/50331648
+Current children cumulated CPU time: 0 s
+Current children cumulated vsize: 0 KiB
+Current children cumulated memory: 0 KiB
+heavy processes:
+
+[startup+282.3 s]
+/proc/loadavg: 0.52 0.58 0.59 3/13 859
+/proc/meminfo: memFree=12210788/16587228 swapFree=50163220/50331648
+Current children cumulated CPU time: 0 s
+Current children cumulated vsize: 0 KiB
+Current children cumulated memory: 0 KiB
+heavy processes:
+
+[startup+342.3 s]
+/proc/loadavg: 0.52 0.58 0.59 3/13 859
+/proc/meminfo: memFree=12218680/16587228 swapFree=50163220/50331648
+Current children cumulated CPU time: 0 s
+Current children cumulated vsize: 0 KiB
+Current children cumulated memory: 0 KiB
+heavy processes:
+
+[startup+402.3 s]
+/proc/loadavg: 0.52 0.58 0.59 2/13 859
+/proc/meminfo: memFree=12224748/16587228 swapFree=50163220/50331648
+Current children cumulated CPU time: 0 s
+Current children cumulated vsize: 0 KiB
+Current children cumulated memory: 0 KiB
+heavy processes:
+
+[startup+462.3 s]
+/proc/loadavg: 0.52 0.58 0.59 3/13 859
+/proc/meminfo: memFree=12219892/16587228 swapFree=50163220/50331648
+Current children cumulated CPU time: 0 s
+Current children cumulated vsize: 0 KiB
+Current children cumulated memory: 0 KiB
+heavy processes:
+
+[startup+522.3 s]
+/proc/loadavg: 0.52 0.58 0.59 3/13 859
+/proc/meminfo: memFree=12210252/16587228 swapFree=50163228/50331648
+Current children cumulated CPU time: 0 s
+Current children cumulated vsize: 0 KiB
+Current children cumulated memory: 0 KiB
+heavy processes:
+
+[startup+582.3 s]
+/proc/loadavg: 0.52 0.58 0.59 2/13 859
+/proc/meminfo: memFree=12246932/16587228 swapFree=50163232/50331648
+Current children cumulated CPU time: 0 s
+Current children cumulated vsize: 0 KiB
+Current children cumulated memory: 0 KiB
+heavy processes:
+
+[startup+642.3 s]
+/proc/loadavg: 0.52 0.58 0.59 3/13 859
+/proc/meminfo: memFree=12250524/16587228 swapFree=50163232/50331648
+Current children cumulated CPU time: 0 s
+Current children cumulated vsize: 0 KiB
+Current children cumulated memory: 0 KiB
+heavy processes:
+
+[startup+702.3 s]
+/proc/loadavg: 0.52 0.58 0.59 2/13 860
+/proc/meminfo: memFree=12243212/16587228 swapFree=50163232/50331648
+Current children cumulated CPU time: 0 s
+Current children cumulated vsize: 0 KiB
+Current children cumulated memory: 0 KiB
+heavy processes:
+
+[startup+762.3 s]
+/proc/loadavg: 0.52 0.58 0.59 2/13 860
+/proc/meminfo: memFree=12246856/16587228 swapFree=50163232/50331648
+Current children cumulated CPU time: 0 s
+Current children cumulated vsize: 0 KiB
+Current children cumulated memory: 0 KiB
+heavy processes:
+
+[startup+822.3 s]
+/proc/loadavg: 0.52 0.58 0.59 3/13 860
+/proc/meminfo: memFree=12247364/16587228 swapFree=50163232/50331648
+Current children cumulated CPU time: 0 s
+Current children cumulated vsize: 0 KiB
+Current children cumulated memory: 0 KiB
+heavy processes:
+
+[startup+882.3 s]
+/proc/loadavg: 0.52 0.58 0.59 3/13 861
+/proc/meminfo: memFree=12244332/16587228 swapFree=50163232/50331648
+Current children cumulated CPU time: 0 s
+Current children cumulated vsize: 0 KiB
+Current children cumulated memory: 0 KiB
+heavy processes:
+
+[startup+942.3 s]
+/proc/loadavg: 0.52 0.58 0.59 3/13 861
+/proc/meminfo: memFree=12212352/16587228 swapFree=50163244/50331648
+Current children cumulated CPU time: 0 s
+Current children cumulated vsize: 0 KiB
+Current children cumulated memory: 0 KiB
+heavy processes:
+
+[startup+1002.3 s]
+/proc/loadavg: 0.52 0.58 0.59 2/13 862
+/proc/meminfo: memFree=12220260/16587228 swapFree=50163248/50331648
+Current children cumulated CPU time: 0 s
+Current children cumulated vsize: 0 KiB
+Current children cumulated memory: 0 KiB
+heavy processes:
+
+[startup+1062.3 s]
+/proc/loadavg: 0.52 0.58 0.59 2/13 863
+/proc/meminfo: memFree=12224068/16587228 swapFree=50163248/50331648
+Current children cumulated CPU time: 0 s
+Current children cumulated vsize: 0 KiB
+Current children cumulated memory: 0 KiB
+heavy processes:
+
+[startup+1122.3 s]
+/proc/loadavg: 0.52 0.58 0.59 3/13 863
+/proc/meminfo: memFree=12226720/16587228 swapFree=50163248/50331648
+Current children cumulated CPU time: 0 s
+Current children cumulated vsize: 0 KiB
+Current children cumulated memory: 0 KiB
+heavy processes:
+
+[startup+1182.3 s]
+/proc/loadavg: 0.52 0.58 0.59 3/13 866
+/proc/meminfo: memFree=12227360/16587228 swapFree=50163248/50331648
+Current children cumulated CPU time: 0 s
+Current children cumulated vsize: 0 KiB
+Current children cumulated memory: 0 KiB
+heavy processes:
+
+
+
+Maximum wall clock time exceeded: sending SIGTERM then SIGKILL
+
+[startup+1200 s]*
+/proc/loadavg: 0.52 0.58 0.59 3/13 867
+/proc/meminfo: memFree=12228548/16587228 swapFree=50163248/50331648
+Current children cumulated CPU time: 0 s
+Current children cumulated vsize: 0 KiB
+Current children cumulated memory: 0 KiB
+heavy processes:
+
+Sending SIGTERM to process tree (bottom up)
+Sleeping 2 seconds
+
+Sending SIGKILL to process tree (bottom up)
+??? end of watcher thread
+
+[startup+1245.61 s]
+# the end of solver process 854 was just reported to runsolver
+# cumulated CPU time of all completed processes:  user=1208.47 s, system=36.6406 s
+
+Solver just ended.
+Dumping a history of the last processes samples
+
+[startup+1200.8 s]
+/proc/loadavg: 0.52 0.58 0.59 3/13 867
+/proc/meminfo: memFree=12228548/16587228 swapFree=50163248/50331648
+Current children cumulated CPU time: 0 s
+Current children cumulated vsize: 0 KiB
+Current children cumulated memory: 0 KiB
+
+[startup+1201.6 s]
+/proc/loadavg: 0.52 0.58 0.59 2/13 867
+/proc/meminfo: memFree=12228528/16587228 swapFree=50163248/50331648
+Current children cumulated CPU time: 0 s
+Current children cumulated vsize: 0 KiB
+Current children cumulated memory: 0 KiB
+
+[startup+1202 s]*
+/proc/loadavg: 0.52 0.58 0.59 2/13 867
+/proc/meminfo: memFree=12228920/16587228 swapFree=50163248/50331648
+Current children cumulated CPU time: 0 s
+Current children cumulated vsize: 0 KiB
+Current children cumulated memory: 0 KiB
+
+Child ended because it received signal 15 (SIGTERM)
+Real time (s): 1245.61
+CPU time (s): 1245.11
+CPU user time (s): 1208.47
+CPU system time (s): 36.6406
+CPU usage (%): 99.9594
+Max. virtual memory (cumulated for all children) (KiB): 0
+Max. memory (cumulated for all children) (KiB): 0
+
+getrusage(RUSAGE_CHILDREN,...) data:
+user time used= 1208.47
+system time used= 36.6406
+maximum resident set size= 10192
+integral shared memory size= 0
+integral unshared data size= 0
+integral unshared stack size= 0
+page reclaims= 3207
+page faults= 0
+swaps= 0
+block input operations= 0
+block output operations= 0
+messages sent= 0
+messages received= 0
+signals received= 0
+voluntary context switches= 0
+involuntary context switches= 0
+
+
+# summary of solver processes directly reported to runsolver:
+#   pid: 854
+#   total CPU time (s): 1245.11
+#   total CPU user time (s): 1208.47
+#   total CPU system time (s): 36.6406
+
+??? end of timestamper thread
+runsolver used 0 second user time and 0 second system time
+
+The end

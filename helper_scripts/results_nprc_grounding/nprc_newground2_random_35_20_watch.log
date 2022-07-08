@@ -1,0 +1,153 @@
+runsolver version 3.4.0 (svn: 3018) Copyright (C) 2010-2013 Olivier ROUSSEL
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+command line: /home/kunalan/runsolver/src/runsolver -C 1200 -W 1200 --vsize-limit 16384 -w results_nprc/nprc_newground2_random_35_20_watch.log --var results_nprc/nprc_newground2_random_35_20_values.log python3 ../newground2.py ../instances/benchmark_instances/encodings/nprc_newground2.lp ../instances/benchmark_instances/graphs/random_35_20.lp 
+
+running on 8 cores: 0-7
+
+Enforcing CPUTime limit (soft limit, will send SIGTERM then SIGKILL): 1200 seconds
+Enforcing CPUTime limit (hard limit, will send SIGXCPU): 1230 seconds
+Enforcing wall clock limit (soft limit, will send SIGTERM then SIGKILL): 1200 seconds
+Enforcing VSIZE limit (soft limit, will send SIGTERM then SIGKILL): 16777216 KiB
+Enforcing VSIZE limit (hard limit, stack expansion will fail with SIGSEGV, brk() and mmap() will return ENOMEM): 16828416 KiB
+Linux 4.4.0-22000-Microsoft
+Current StackSize limit: 8192 KiB
+solver pid=1779, runsolver pid=1777
+
+
+[startup+0.100165 s]*
+/proc/loadavg: 0.52 0.58 0.59 2/13 1780
+/proc/meminfo: memFree=11654332/16587228 swapFree=50193836/50331648
+Current children cumulated CPU time: 0 s
+Current children cumulated vsize: 0 KiB
+Current children cumulated memory: 0 KiB
+
+[startup+0.201494 s]*
+/proc/loadavg: 0.52 0.58 0.59 2/13 1780
+/proc/meminfo: memFree=11653424/16587228 swapFree=50193836/50331648
+Current children cumulated CPU time: 0 s
+Current children cumulated vsize: 0 KiB
+Current children cumulated memory: 0 KiB
+
+[startup+0.30105 s]*
+/proc/loadavg: 0.52 0.58 0.59 2/13 1780
+/proc/meminfo: memFree=11635456/16587228 swapFree=50193836/50331648
+Current children cumulated CPU time: 0 s
+Current children cumulated vsize: 0 KiB
+Current children cumulated memory: 0 KiB
+
+[startup+0.700118 s]
+/proc/loadavg: 0.52 0.58 0.59 2/13 1780
+/proc/meminfo: memFree=11635252/16587228 swapFree=50193836/50331648
+Current children cumulated CPU time: 0 s
+Current children cumulated vsize: 0 KiB
+Current children cumulated memory: 0 KiB
+
+[startup+1.50013 s]
+/proc/loadavg: 0.52 0.58 0.59 2/13 1780
+/proc/meminfo: memFree=11632880/16587228 swapFree=50193836/50331648
+Current children cumulated CPU time: 0 s
+Current children cumulated vsize: 0 KiB
+Current children cumulated memory: 0 KiB
+
+[startup+3.10123 s]
+/proc/loadavg: 0.52 0.58 0.59 2/13 1781
+/proc/meminfo: memFree=11642108/16587228 swapFree=50193836/50331648
+Current children cumulated CPU time: 0 s
+Current children cumulated vsize: 0 KiB
+Current children cumulated memory: 0 KiB
+heavy processes:
+
+[startup+6.30053 s]
+/proc/loadavg: 0.52 0.58 0.59 2/13 1781
+/proc/meminfo: memFree=11638116/16587228 swapFree=50193836/50331648
+Current children cumulated CPU time: 0 s
+Current children cumulated vsize: 0 KiB
+Current children cumulated memory: 0 KiB
+heavy processes:
+
+[startup+8.51689 s]
+# the end of solver process 1779 was just reported to runsolver
+# cumulated CPU time of all completed processes:  user=8.39062 s, system=0.109375 s
+
+Solver just ended.
+??? end of watcher thread
+Dumping a history of the last processes samples
+
+[startup+6.40132 s]
+/proc/loadavg: 0.52 0.58 0.59 2/13 1781
+/proc/meminfo: memFree=11638148/16587228 swapFree=50193836/50331648
+Current children cumulated CPU time: 0 s
+Current children cumulated vsize: 0 KiB
+Current children cumulated memory: 0 KiB
+
+[startup+7.20018 s]
+/proc/loadavg: 0.52 0.58 0.59 2/13 1781
+/proc/meminfo: memFree=11638100/16587228 swapFree=50193836/50331648
+Current children cumulated CPU time: 0 s
+Current children cumulated vsize: 0 KiB
+Current children cumulated memory: 0 KiB
+
+[startup+8.00026 s]*
+/proc/loadavg: 0.52 0.58 0.59 2/13 1781
+/proc/meminfo: memFree=11638704/16587228 swapFree=50193836/50331648
+Current children cumulated CPU time: 0 s
+Current children cumulated vsize: 0 KiB
+Current children cumulated memory: 0 KiB
+
+[startup+8.40026 s]
+/proc/loadavg: 0.52 0.58 0.59 2/13 1781
+/proc/meminfo: memFree=11638704/16587228 swapFree=50193836/50331648
+Current children cumulated CPU time: 0 s
+Current children cumulated vsize: 0 KiB
+Current children cumulated memory: 0 KiB
+
+[startup+8.5001 s]
+/proc/loadavg: 0.52 0.58 0.59 2/13 1781
+/proc/meminfo: memFree=11638704/16587228 swapFree=50193836/50331648
+Current children cumulated CPU time: 0 s
+Current children cumulated vsize: 0 KiB
+Current children cumulated memory: 0 KiB
+
+Child status: 1
+Real time (s): 8.51696
+CPU time (s): 8.5
+CPU user time (s): 8.39062
+CPU system time (s): 0.109375
+CPU usage (%): 99.8008
+Max. virtual memory (cumulated for all children) (KiB): 0
+Max. memory (cumulated for all children) (KiB): 0
+
+getrusage(RUSAGE_CHILDREN,...) data:
+user time used= 8.39062
+system time used= 0.109375
+maximum resident set size= 26016
+integral shared memory size= 0
+integral unshared data size= 0
+integral unshared stack size= 0
+page reclaims= 6809
+page faults= 0
+swaps= 0
+block input operations= 0
+block output operations= 0
+messages sent= 0
+messages received= 0
+signals received= 0
+voluntary context switches= 0
+involuntary context switches= 0
+
+
+# summary of solver processes directly reported to runsolver:
+#   pid: 1779
+#   total CPU time (s): 8.5
+#   total CPU user time (s): 8.39062
+#   total CPU system time (s): 0.109375
+
+??? end of timestamper thread
+runsolver used 0 second user time and 0.015625 second system time
+
+The end

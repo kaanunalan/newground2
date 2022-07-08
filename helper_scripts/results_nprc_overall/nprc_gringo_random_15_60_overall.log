@@ -1,0 +1,32 @@
+clingo version 5.5.2
+Reading from stdin
+Solving...
+UNSATISFIABLE
+
+Models       : 0
+Calls        : 1
+Time         : 3.521s (Solving: 0.00s 1st Model: 0.00s Unsat: 0.00s)
+CPU Time     : 3.516s
+
+Choices      : 1       
+Conflicts    : 2        (Analyzed: 1)
+Restarts     : 0       
+Problems     : 1        (Average Length: 0.00 Splits: 0)
+Lemmas       : 1        (Deleted: 0)
+  Binary     : 0        (Ratio:   0.00%)
+  Ternary    : 0        (Ratio:   0.00%)
+  Conflict   : 1        (Average Length:    1.0 Ratio: 100.00%) 
+  Loop       : 0        (Average Length:    0.0 Ratio:   0.00%) 
+  Other      : 0        (Average Length:    0.0 Ratio:   0.00%) 
+Backjumps    : 1        (Average:  1.00 Max:   1 Sum:      1)
+  Executed   : 1        (Average:  1.00 Max:   1 Sum:      1 Ratio: 100.00%)
+  Bounded    : 0        (Average:  0.00 Max:   0 Sum:      0 Ratio:   0.00%)
+
+Rules        : 20191   
+Atoms        : 498     
+Bodies       : 19657   
+Equivalences : 413      (Atom=Atom: 29 Body=Body: 106 Other: 278)
+Tight        : No       (SCCs: 1 Non-Hcfs: 0 Nodes: 17266 Gammas: 0)
+Variables    : 18366    (Eliminated:    0 Frozen: 17336)
+Constraints  : 92557    (Binary:  79.9% Ternary:   0.3% Other:  19.7%)
+
